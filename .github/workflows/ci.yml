@@ -1,0 +1,17 @@
+name: ELL CI
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Repository Dispatch
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token: ${{ secrets.ACTION_TOKEN }}
+          repository: IWDTestBot/iwd
+          event-type: ell-dispatch
+          client-payload: '{"ref": "${{ github.ref }}", "repo": "IWDTestBot/ell" }'
