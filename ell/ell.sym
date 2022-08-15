@@ -748,10 +748,12 @@ global:
 	l_netconfig_set_gateway_override;
 	l_netconfig_set_dns_override;
 	l_netconfig_set_domain_names_override;
+	l_netconfig_set_acd_enabled;
 	l_netconfig_check_config;
 	l_netconfig_reset_config;
 	l_netconfig_start;
 	l_netconfig_stop;
+	l_netconfig_unconfigure;
 	l_netconfig_get_dhcp_client;
 	l_netconfig_get_dhcp6_client;
 	l_netconfig_get_icmp6_client;
