@@ -270,6 +270,26 @@ static long kernel_key_verify(int32_t serial,
 	return result >= 0 ? result : -errno;
 }
 
+static long kernel_key_request(const char *type, const char *description)
+{
+	long result;
+
+	result = syscall(__NR_request_key, type, description, NULL, 0);
+
+	return result >= 0 ? result : -errno;
+}
+
+static long kernel_key_search(int32_t keyring_id, const char *type,
+				const char *description)
+{
+	long result;
+
+	result = syscall(__NR_keyctl, KEYCTL_SEARCH, keyring_id, type,
+				description, 0);
+
+	return result >= 0 ? result : -errno;
+}
+
 static bool setup_internal_keyring(void)
 {
 	internal_keyring = kernel_add_key("keyring", "ell-internal", NULL, 0,
@@ -281,6 +301,32 @@ static bool setup_internal_keyring(void)
 	}
 
 	return true;
+}
+
+LIB_EXPORT int32_t l_key_search(enum l_key_type type, const char *keyring,
+					const char *description)
+{
+	long keyring_id;
+	long key_id;
+
+	if (unlikely((size_t)type >= L_ARRAY_SIZE(key_type_names)))
+		return -EINVAL;
+
+	if (unlikely(!keyring || !description))
+		return -EINVAL;
+
+	/* Find the ID of the keyring */
+	keyring_id = kernel_key_request("keyring", keyring);
+	if (keyring_id < 0)
+		return -ENOENT;
+
+	/* Search for the key by type/description */
+	key_id = kernel_key_search(keyring_id, key_type_names[type],
+					description);
+	if (key_id < 0)
+		return -ENOENT;
+
+	return key_id;
 }
 
 LIB_EXPORT struct l_key *l_key_new(enum l_key_type type, const void *payload,

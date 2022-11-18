@@ -68,6 +68,10 @@ struct sockaddr_alg {
 #define SOL_ALG 279
 #endif
 
+#ifndef ALG_SET_KEY_BY_KEY_SERIAL
+#define ALG_SET_KEY_BY_KEY_SERIAL 7
+#endif
+
 struct checksum_info {
 	const char *name;
 	uint8_t digest_len;
@@ -146,6 +150,37 @@ static int create_alg(const char *alg)
 	return sk;
 }
 
+static struct l_checksum *checksum_new_common(const char *alg, int sockopt,
+						const void *data, size_t len,
+						struct checksum_info *info)
+{
+	struct l_checksum *checksum;
+	int fd;
+
+	fd = create_alg(alg);
+	if (fd < 0)
+		return NULL;
+
+	if (data) {
+		if (setsockopt(fd, SOL_ALG, sockopt, data, len) < 0) {
+			close(fd);
+			return NULL;
+		}
+	}
+
+	checksum = l_new(struct l_checksum, 1);
+	checksum->sk = accept4(fd, NULL, 0, SOCK_CLOEXEC);
+	close(fd);
+
+	if (checksum->sk < 0) {
+		l_free(checksum);
+		return NULL;
+	}
+
+	checksum->alg_info = info;
+	return checksum;
+}
+
 /**
  * l_checksum_new:
  * @type: checksum type
@@ -156,90 +191,43 @@ static int create_alg(const char *alg)
  **/
 LIB_EXPORT struct l_checksum *l_checksum_new(enum l_checksum_type type)
 {
-	struct l_checksum *checksum;
-	int fd;
-
 	if (!is_valid_index(checksum_algs, type) || !checksum_algs[type].name)
 		return NULL;
 
-	checksum = l_new(struct l_checksum, 1);
-	checksum->alg_info = &checksum_algs[type];
-
-	fd = create_alg(checksum->alg_info->name);
-	if (fd < 0)
-		goto error;
-
-	checksum->sk = accept4(fd, NULL, 0, SOCK_CLOEXEC);
-	close(fd);
-
-	if (checksum->sk < 0)
-		goto error;
-
-	return checksum;
-
-error:
-	l_free(checksum);
-	return NULL;
+	return checksum_new_common(checksum_algs[type].name, 0, NULL, 0,
+					&checksum_algs[type]);
 }
 
 LIB_EXPORT struct l_checksum *l_checksum_new_cmac_aes(const void *key,
 							size_t key_len)
 {
-	struct l_checksum *checksum;
-	int fd;
-
-	fd = create_alg("cmac(aes)");
-	if (fd < 0)
-		return NULL;
-
-	if (setsockopt(fd, SOL_ALG, ALG_SET_KEY, key, key_len) < 0) {
-		close(fd);
-		return NULL;
-	}
-
-	checksum = l_new(struct l_checksum, 1);
-	checksum->sk = accept4(fd, NULL, 0, SOCK_CLOEXEC);
-	close(fd);
-
-	if (checksum->sk < 0) {
-		l_free(checksum);
-		return NULL;
-	}
-
-	checksum->alg_info = &checksum_cmac_aes_alg;
-	return checksum;
+	return checksum_new_common("cmac(aes)", ALG_SET_KEY, key, key_len,
+					&checksum_cmac_aes_alg);
 }
 
 LIB_EXPORT struct l_checksum *l_checksum_new_hmac(enum l_checksum_type type,
 					  const void *key, size_t key_len)
 {
-	struct l_checksum *checksum;
-	int fd;
-
 	if (!is_valid_index(checksum_hmac_algs, type) ||
 			!checksum_hmac_algs[type].name)
 		return NULL;
 
-	fd = create_alg(checksum_hmac_algs[type].name);
-	if (fd < 0)
+	return checksum_new_common(checksum_hmac_algs[type].name,
+					ALG_SET_KEY, key, key_len,
+					&checksum_hmac_algs[type]);
+}
+
+struct l_checksum *l_checksum_new_hmac_from_key_id(enum l_checksum_type type,
+							int32_t key_id)
+{
+	if (!is_valid_index(checksum_hmac_algs, type) ||
+			!checksum_hmac_algs[type].name)
 		return NULL;
 
-	if (setsockopt(fd, SOL_ALG, ALG_SET_KEY, key, key_len) < 0) {
-		close(fd);
-		return NULL;
-	}
-
-	checksum = l_new(struct l_checksum, 1);
-	checksum->sk = accept4(fd, NULL, 0, SOCK_CLOEXEC);
-	close(fd);
-
-	if (checksum->sk < 0) {
-		l_free(checksum);
-		return NULL;
-	}
-
-	checksum->alg_info = &checksum_hmac_algs[type];
-	return checksum;
+	return checksum_new_common(checksum_hmac_algs[type].name,
+					ALG_SET_KEY_BY_KEY_SERIAL,
+					&key_id, sizeof(key_id),
+					&checksum_hmac_algs[type]);
 }
 
 /**

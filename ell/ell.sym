@@ -115,6 +115,7 @@ global:
 	l_checksum_new;
 	l_checksum_new_cmac_aes;
 	l_checksum_new_hmac;
+	l_checksum_new_hmac_from_key_id;
 	l_checksum_clone;
 	l_checksum_free;
 	l_checksum_reset;
@@ -387,6 +388,7 @@ global:
 	l_key_decrypt;
 	l_key_sign;
 	l_key_verify;
+	l_key_search;
 	l_keyring_new;
 	l_keyring_restrict;
 	l_keyring_free;
@@ -565,6 +567,7 @@ global:
 	l_cert_load_container_file;
 	l_cert_pkcs5_pbkdf1;
 	l_cert_pkcs5_pbkdf2;
+	l_cert_pkcs5_pbkdf2_from_key_id;
 	/* ecc */
 	l_ecc_supported_ike_groups;
 	l_ecc_supported_tls_groups;

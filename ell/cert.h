@@ -75,10 +75,15 @@ bool l_cert_pkcs5_pbkdf1(enum l_checksum_type type, const char *password,
 				unsigned int iter_count,
 				uint8_t *out_dk, size_t dk_len);
 bool l_cert_pkcs5_pbkdf2(enum l_checksum_type type, const char *password,
+				size_t pass_len,
 				const uint8_t *salt, size_t salt_len,
 				unsigned int iter_count,
 				uint8_t *out_dk, size_t dk_len);
-
+bool l_cert_pkcs5_pbkdf2_from_key_id(enum l_checksum_type type,
+					int32_t key_id, const uint8_t *salt,
+					size_t salt_len,
+					unsigned int iter_count,
+					uint8_t *out_dk, size_t dk_len);
 #ifdef __cplusplus
 }
 #endif

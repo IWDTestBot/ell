@@ -24,6 +24,9 @@
 #include <config.h>
 #endif
 
+#include <sys/syscall.h>
+#include <linux/keyctl.h>
+#include <unistd.h>
 #include <assert.h>
 
 #include <ell/ell.h>
@@ -661,6 +664,27 @@ static void test_key_crypto(const void *data)
 	l_key_free(pubkey);
 }
 
+static void test_key_search(const void *data)
+{
+	long keyring_id;
+	long key_id;
+
+	/*
+	 * Search is used to find a key out side of ELL's internal keyring. So
+	 * manually create a keyring/key here rather than using l_key APIs
+	 */
+
+	keyring_id = syscall(__NR_add_key, "keyring", "my-keyring", NULL,
+				0, KEY_SPEC_USER_KEYRING);
+	assert(keyring_id >= 0);
+
+	key_id = syscall(__NR_add_key, "user", "my-key",
+				KEY1_STR, KEY1_LEN, keyring_id);
+	assert(key_id >= 0);
+
+	assert(key_id == l_key_search(L_KEY_RAW, "my-keyring", "my-key"));
+}
+
 int main(int argc, char *argv[])
 {
 	l_test_init(&argc, &argv);
@@ -684,6 +708,8 @@ int main(int argc, char *argv[])
 
 	if (l_key_is_supported(L_KEY_FEATURE_CRYPTO))
 		l_test_add("key crypto", test_key_crypto, NULL);
+
+	l_test_add("key search", test_key_search, NULL);
 
 	return l_test_run();
 }
