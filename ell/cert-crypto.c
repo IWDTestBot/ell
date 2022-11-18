@@ -175,7 +175,7 @@ static bool cert_pkcs5_pbkdf2(struct l_checksum *checksum, const uint8_t *salt,
 
 /* RFC8018 section 5.2 */
 LIB_EXPORT bool l_cert_pkcs5_pbkdf2(enum l_checksum_type type,
-					const char *password,
+					const char *password, size_t pass_len,
 					const uint8_t *salt, size_t salt_len,
 					unsigned int iter_count,
 					uint8_t *out_dk, size_t dk_len)
@@ -188,7 +188,7 @@ LIB_EXPORT bool l_cert_pkcs5_pbkdf2(enum l_checksum_type type,
 	if (!h_len)
 		return false;
 
-	checksum = l_checksum_new_hmac(type, password, strlen(password));
+	checksum = l_checksum_new_hmac(type, password, pass_len);
 	if (!checksum)
 		return false;
 
@@ -648,7 +648,8 @@ static struct l_cipher *cipher_from_pkcs5_pbes2_params(
 
 	/* RFC8018 section 6.2 */
 
-	if (!l_cert_pkcs5_pbkdf2(prf_alg, password, salt, salt_len, iter_count,
+	if (!l_cert_pkcs5_pbkdf2(prf_alg, password, strlen(password), salt,
+					salt_len, iter_count,
 					derived_key, key_len))
 		return NULL;
 
