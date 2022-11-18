@@ -103,44 +103,34 @@ LIB_EXPORT bool l_cert_pkcs5_pbkdf1(enum l_checksum_type type,
 	return !iter_count;
 }
 
-/* RFC8018 section 5.2 */
-LIB_EXPORT bool l_cert_pkcs5_pbkdf2(enum l_checksum_type type,
-					const char *password,
-					const uint8_t *salt, size_t salt_len,
-					unsigned int iter_count,
-					uint8_t *out_dk, size_t dk_len)
+static size_t cert_checksum_to_length(enum l_checksum_type type)
 {
-	size_t h_len;
-	struct l_checksum *checksum;
-	unsigned int i;
-
 	switch (type) {
 	case L_CHECKSUM_SHA1:
-		h_len = 20;
-		break;
+		return 20;
 	case L_CHECKSUM_SHA224:
-		h_len = 28;
-		break;
+		return 28;
 	case L_CHECKSUM_SHA256:
-		h_len = 32;
-		break;
+		return 32;
 	case L_CHECKSUM_SHA384:
-		h_len = 48;
-		break;
+		return 48;
 	case L_CHECKSUM_SHA512:
-		h_len = 64;
-		break;
+		return 64;
 	case L_CHECKSUM_NONE:
 	case L_CHECKSUM_MD4:
 	case L_CHECKSUM_MD5:
-		return false;
+		return 0;
 	default:
-		return false;
+		return 0;
 	}
+}
 
-	checksum = l_checksum_new_hmac(type, password, strlen(password));
-	if (!checksum)
-		return false;
+static bool cert_pkcs5_pbkdf2(struct l_checksum *checksum, const uint8_t *salt,
+				size_t salt_len, size_t h_len,
+				unsigned int iter_count, uint8_t *out_dk,
+				size_t dk_len)
+{
+	unsigned int i;
 
 	for (i = 1; dk_len; i++) {
 		unsigned int j, k;
@@ -180,9 +170,34 @@ LIB_EXPORT bool l_cert_pkcs5_pbkdf2(enum l_checksum_type type,
 		dk_len -= block_len;
 	}
 
+	return !dk_len;
+}
+
+/* RFC8018 section 5.2 */
+LIB_EXPORT bool l_cert_pkcs5_pbkdf2(enum l_checksum_type type,
+					const char *password,
+					const uint8_t *salt, size_t salt_len,
+					unsigned int iter_count,
+					uint8_t *out_dk, size_t dk_len)
+{
+	size_t h_len;
+	struct l_checksum *checksum;
+	bool r;
+
+	h_len = cert_checksum_to_length(type);
+	if (!h_len)
+		return false;
+
+	checksum = l_checksum_new_hmac(type, password, strlen(password));
+	if (!checksum)
+		return false;
+
+	r = cert_pkcs5_pbkdf2(checksum, salt, salt_len, h_len, iter_count,
+				out_dk, dk_len);
+
 	l_checksum_free(checksum);
 
-	return !dk_len;
+	return r;
 }
 
 /* RFC7292 Appendix B */
