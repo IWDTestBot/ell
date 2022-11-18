@@ -387,6 +387,7 @@ global:
 	l_key_decrypt;
 	l_key_sign;
 	l_key_verify;
+	l_key_search;
 	l_keyring_new;
 	l_keyring_restrict;
 	l_keyring_free;
