@@ -567,6 +567,7 @@ global:
 	l_cert_load_container_file;
 	l_cert_pkcs5_pbkdf1;
 	l_cert_pkcs5_pbkdf2;
+	l_cert_pkcs5_pbkdf2_from_key_id;
 	/* ecc */
 	l_ecc_supported_ike_groups;
 	l_ecc_supported_tls_groups;

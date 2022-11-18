@@ -200,6 +200,33 @@ LIB_EXPORT bool l_cert_pkcs5_pbkdf2(enum l_checksum_type type,
 	return r;
 }
 
+LIB_EXPORT bool l_cert_pkcs5_pbkdf2_from_key_id(enum l_checksum_type type,
+						int32_t key_id,
+						const uint8_t *salt,
+						size_t salt_len,
+						unsigned int iter_count,
+						uint8_t *out_dk, size_t dk_len)
+{
+	size_t h_len;
+	struct l_checksum *checksum;
+	bool r;
+
+	h_len = cert_checksum_to_length(type);
+	if (!h_len)
+		return false;
+
+	checksum = l_checksum_new_hmac_from_key_id(type, key_id);
+	if (!checksum)
+		return false;
+
+	r = cert_pkcs5_pbkdf2(checksum, salt, salt_len, h_len, iter_count,
+				out_dk, dk_len);
+
+	l_checksum_free(checksum);
+
+	return r;
+}
+
 /* RFC7292 Appendix B */
 uint8_t *cert_pkcs12_pbkdf(const char *password,
 				const struct cert_pkcs12_hash *hash,
