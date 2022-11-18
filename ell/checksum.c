@@ -68,6 +68,10 @@ struct sockaddr_alg {
 #define SOL_ALG 279
 #endif
 
+#ifndef ALG_SET_KEY_BY_KEY_SERIAL
+#define ALG_SET_KEY_BY_KEY_SERIAL 7
+#endif
+
 struct checksum_info {
 	const char *name;
 	uint8_t digest_len;
@@ -210,6 +214,19 @@ LIB_EXPORT struct l_checksum *l_checksum_new_hmac(enum l_checksum_type type,
 
 	return checksum_new_common(checksum_hmac_algs[type].name,
 					ALG_SET_KEY, key, key_len,
+					&checksum_hmac_algs[type]);
+}
+
+struct l_checksum *l_checksum_new_hmac_from_key_id(enum l_checksum_type type,
+							int32_t key_id)
+{
+	if (!is_valid_index(checksum_hmac_algs, type) ||
+			!checksum_hmac_algs[type].name)
+		return NULL;
+
+	return checksum_new_common(checksum_hmac_algs[type].name,
+					ALG_SET_KEY_BY_KEY_SERIAL,
+					&key_id, sizeof(key_id),
 					&checksum_hmac_algs[type]);
 }
 

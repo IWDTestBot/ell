@@ -115,6 +115,7 @@ global:
 	l_checksum_new;
 	l_checksum_new_cmac_aes;
 	l_checksum_new_hmac;
+	l_checksum_new_hmac_from_key_id;
 	l_checksum_clone;
 	l_checksum_free;
 	l_checksum_reset;
