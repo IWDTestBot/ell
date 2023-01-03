@@ -3417,6 +3417,7 @@ LIB_EXPORT void l_tls_free(struct l_tls *tls)
 	if (tls->cipher_suite_pref_list != tls_cipher_suite_pref)
 		l_free(tls->cipher_suite_pref_list);
 
+	l_free(tls->server_name);
 	l_free(tls);
 }
 
@@ -3650,6 +3651,17 @@ LIB_EXPORT void l_tls_reset(struct l_tls *tls)
 	tls->record_flush = true;
 	tls->record_buf_len = 0;
 	tls->message_buf_len = 0;
+}
+
+LIB_EXPORT bool l_tls_set_server_name(struct l_tls *tls, const char *name)
+{
+	if (!tls)
+		return false;
+
+	l_free(tls->server_name);
+	tls->server_name = l_strdup(name);
+
+	return true;
 }
 
 LIB_EXPORT bool l_tls_set_cacert(struct l_tls *tls, struct l_queue *ca_certs)

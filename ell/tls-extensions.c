@@ -31,6 +31,27 @@
 #include "cert.h"
 #include "tls-private.h"
 
+static ssize_t tls_server_name_client_write(struct l_tls *tls,
+						uint8_t *buf, size_t len)
+{
+	size_t hlen;
+
+	if (!tls->server_name)
+		return -ENOMSG;
+
+	hlen = strlen(tls->server_name);
+
+	if (len < hlen + 5)
+		return -ENOMEM;
+
+	l_put_be16(hlen + 3, buf);
+	l_put_u8(0, buf + 2);
+	l_put_be16(hlen, buf + 3);
+	memcpy(buf + 5, tls->server_name, hlen);
+
+	return hlen + 5;
+}
+
 /* Most extensions are not used when resuming a cached session */
 #define SKIP_ON_RESUMPTION()	\
 	do {	\
@@ -975,6 +996,13 @@ static bool tls_renegotiation_info_absent(struct l_tls *tls)
 }
 
 const struct tls_hello_extension tls_extensions[] = {
+	{
+		"Server Name", "server_name", 0,
+		tls_server_name_client_write,
+		NULL,
+		NULL,
+		NULL, NULL, NULL,
+	},
 	{
 		"Supported Groups", "elliptic_curves", 10,
 		tls_elliptic_curves_client_write,
