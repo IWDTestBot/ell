@@ -200,7 +200,7 @@ struct l_tls {
 	bool server;
 
 	l_tls_write_cb_t tx, rx;
-	l_tls_ready_cb_t ready_handle;
+	l_tls_ready_cb_t ready_handler;
 	l_tls_disconnect_cb_t disconnected;
 	void *user_data;
 	l_tls_debug_cb_t debug_handler;

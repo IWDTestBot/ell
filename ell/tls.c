@@ -3072,7 +3072,7 @@ static void tls_finished(struct l_tls *tls)
 
 	if (!renegotiation) {
 		tls->in_callback = true;
-		tls->ready_handle(peer_identity, tls->user_data);
+		tls->ready_handler(peer_identity, tls->user_data);
 		tls->in_callback = false;
 	}
 
@@ -3361,7 +3361,7 @@ LIB_EXPORT struct l_tls *l_tls_new(bool server,
 	tls->server = server;
 	tls->rx = app_data_handler;
 	tls->tx = tx_handler;
-	tls->ready_handle = ready_handler;
+	tls->ready_handler = ready_handler;
 	tls->disconnected = disconnect_handler;
 	tls->user_data = user_data;
 	tls->cipher_suite_pref_list = tls_cipher_suite_pref;
