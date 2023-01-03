@@ -127,7 +127,7 @@ void l_tls_set_version_range(struct l_tls *tls,
 				enum l_tls_version min_version,
 				enum l_tls_version max_version);
 
-void l_tls_set_domain_mask(struct l_tls *tls, char **mask);
+void l_tls_set_domain_mask(struct l_tls *tls, const char **mask);
 
 void l_tls_set_session_cache(struct l_tls *tls, struct l_settings *settings,
 				const char *group_prefix, uint64_t lifetime,

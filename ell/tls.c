@@ -3782,11 +3782,13 @@ LIB_EXPORT void l_tls_set_version_range(struct l_tls *tls,
  * beginning of the mask matches one or more consecutive labels from
  * the beginning of the domain string.
  */
-LIB_EXPORT void l_tls_set_domain_mask(struct l_tls *tls, char **mask)
+LIB_EXPORT void l_tls_set_domain_mask(struct l_tls *tls, const char **mask)
 {
-	l_strv_free(tls->subject_mask);
+	if (!tls)
+		return;
 
-	tls->subject_mask = l_strv_copy(mask);
+	l_strv_free(tls->subject_mask);
+	tls->subject_mask = l_strv_copy((char **) mask);
 }
 
 /**

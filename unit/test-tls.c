@@ -374,7 +374,7 @@ struct tls_conn_test {
 	const char *client_ca_cert_path;
 	const char *client_expect_identity;
 	const char **client_cipher_suites;
-	char **client_domain_mask;
+	const char **client_domain_mask;
 	bool expect_alert;
 	bool expect_client_start_fail;
 	enum l_tls_alert_desc alert_desc;
@@ -736,7 +736,9 @@ static const struct tls_conn_test tls_conn_test_domain_match1 = {
 	.client_ca_cert_path = CERTDIR "cert-ca.pem",
 	.client_expect_identity = "/O=Bar Example Organization"
 		"/CN=Bar Example Organization/emailAddress=bar@mail.example",
-	.client_domain_mask = (char *[]) { "Bar Example Organization", NULL },
+	.client_domain_mask = (const char *[]) {
+		"Bar Example Organization", NULL
+	},
 };
 
 static const struct tls_conn_test tls_conn_test_domain_match2 = {
@@ -750,7 +752,7 @@ static const struct tls_conn_test tls_conn_test_domain_match2 = {
 	.client_ca_cert_path = CERTDIR "cert-ca.pem",
 	.client_expect_identity = "/O=Bar Example Organization"
 		"/CN=Bar Example Organization/emailAddress=bar@mail.example",
-	.client_domain_mask = (char *[]) {
+	.client_domain_mask = (const char *[]) {
 		"Bar Example Organization", "Foo Example Organization", NULL
 	},
 };
@@ -766,7 +768,7 @@ static const struct tls_conn_test tls_conn_test_domain_match3 = {
 	.client_ca_cert_path = CERTDIR "cert-ca.pem",
 	.client_expect_identity = "/O=Bar Example Organization"
 		"/CN=Bar Example Organization/emailAddress=bar@mail.example",
-	.client_domain_mask = (char *[]) {
+	.client_domain_mask = (const char *[]) {
 		"Foo Example Organization", "Bar Example Organization", NULL
 	},
 };
@@ -782,7 +784,7 @@ static const struct tls_conn_test tls_conn_test_domain_match4 = {
 	.client_ca_cert_path = CERTDIR "cert-ca.pem",
 	.client_expect_identity = "/O=Bar Example Organization"
 		"/CN=Bar Example Organization/emailAddress=bar@mail.example",
-	.client_domain_mask = (char *[]) { "*", NULL },
+	.client_domain_mask = (const char *[]) { "*", NULL },
 };
 
 static const struct tls_conn_test tls_conn_test_domain_match5 = {
@@ -796,7 +798,7 @@ static const struct tls_conn_test tls_conn_test_domain_match5 = {
 	.client_ca_cert_path = CERTDIR "cert-ca.pem",
 	.client_expect_identity = "/O=Foo Example Organization"
 		"/CN=Foo Example Organization/emailAddress=foo@mail.example",
-	.client_domain_mask = (char *[]) { "foo.int.com", NULL },
+	.client_domain_mask = (const char *[]) { "foo.int.com", NULL },
 };
 
 static const struct tls_conn_test tls_conn_test_domain_match6 = {
@@ -810,7 +812,7 @@ static const struct tls_conn_test tls_conn_test_domain_match6 = {
 	.client_ca_cert_path = CERTDIR "cert-ca.pem",
 	.client_expect_identity = "/O=Foo Example Organization"
 		"/CN=Foo Example Organization/emailAddress=foo@mail.example",
-	.client_domain_mask = (char *[]) { "*.*", NULL },
+	.client_domain_mask = (const char *[]) { "*.*", NULL },
 };
 
 static const struct tls_conn_test tls_conn_test_domain_match7 = {
@@ -824,7 +826,7 @@ static const struct tls_conn_test tls_conn_test_domain_match7 = {
 	.client_ca_cert_path = CERTDIR "cert-ca.pem",
 	.client_expect_identity = "/O=Foo Example Organization"
 		"/CN=Foo Example Organization/emailAddress=foo@mail.example",
-	.client_domain_mask = (char *[]) { "*.*.*", NULL },
+	.client_domain_mask = (const char *[]) { "*.*.*", NULL },
 };
 
 static const struct tls_conn_test tls_conn_test_domain_mismatch1 = {
@@ -838,7 +840,7 @@ static const struct tls_conn_test tls_conn_test_domain_mismatch1 = {
 	.client_ca_cert_path = CERTDIR "cert-ca.pem",
 	.client_expect_identity = "/O=Bar Example Organization"
 		"/CN=Bar Example Organization/emailAddress=bar@mail.example",
-	.client_domain_mask = (char *[]) { "", NULL },
+	.client_domain_mask = (const char *[]) { "", NULL },
 	.expect_alert = true,
 	.alert_desc = TLS_ALERT_BAD_CERT,
 };
@@ -854,7 +856,9 @@ static const struct tls_conn_test tls_conn_test_domain_mismatch2 = {
 	.client_ca_cert_path = CERTDIR "cert-ca.pem",
 	.client_expect_identity = "/O=Bar Example Organization"
 		"/CN=Bar Example Organization/emailAddress=bar@mail.example",
-	.client_domain_mask = (char *[]) { "Foo Example Organization", NULL },
+	.client_domain_mask = (const char *[]) {
+		"Foo Example Organization", NULL
+	},
 	.expect_alert = true,
 	.alert_desc = TLS_ALERT_BAD_CERT,
 };
@@ -870,7 +874,7 @@ static const struct tls_conn_test tls_conn_test_domain_mismatch3 = {
 	.client_ca_cert_path = CERTDIR "cert-ca.pem",
 	.client_expect_identity = "/O=Bar Example Organization"
 		"/CN=Bar Example Organization/emailAddress=bar@mail.example",
-	.client_domain_mask = (char *[]) {
+	.client_domain_mask = (const char *[]) {
 		"Bar Example Organization.com", NULL
 	},
 	.expect_alert = true,
@@ -888,7 +892,7 @@ static const struct tls_conn_test tls_conn_test_domain_mismatch4 = {
 	.client_ca_cert_path = CERTDIR "cert-ca.pem",
 	.client_expect_identity = "/O=Bar Example Organization"
 		"/CN=Bar Example Organization/emailAddress=bar@mail.example",
-	.client_domain_mask = (char *[]) {
+	.client_domain_mask = (const char *[]) {
 		"Bar Example Organization.*", NULL
 	},
 	.expect_alert = true,
@@ -906,7 +910,7 @@ static const struct tls_conn_test tls_conn_test_domain_mismatch5 = {
 	.client_ca_cert_path = CERTDIR "cert-ca.pem",
 	.client_expect_identity = "/O=Bar Example Organization"
 		"/CN=Bar Example Organization/emailAddress=bar@mail.example",
-	.client_domain_mask = (char *[]) {
+	.client_domain_mask = (const char *[]) {
 		"*.Bar Example Organization", NULL
 	},
 	.expect_alert = true,
@@ -924,7 +928,7 @@ static const struct tls_conn_test tls_conn_test_domain_mismatch6 = {
 	.client_ca_cert_path = CERTDIR "cert-ca.pem",
 	.client_expect_identity = "/O=Foo Example Organization"
 		"/CN=Foo Example Organization/emailAddress=foo@mail.example",
-	.client_domain_mask = (char *[]) {
+	.client_domain_mask = (const char *[]) {
 		"foo.*", NULL
 	},
 	.expect_alert = true,
