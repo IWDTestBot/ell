@@ -177,7 +177,7 @@ static void tls_tx_record_plaintext(struct l_tls *tls,
 		 * be used to build the IV.
 		 */
 		memcpy(iv, tls->fixed_iv[1], tls->fixed_iv_length[1]);
-		l_put_le64(tls->seq_num[1], iv + tls->fixed_iv_length[1]);
+		l_put_be64(tls->seq_num[1], iv + tls->fixed_iv_length[1]);
 
 		if (tls->record_iv_length[1] > 8)
 			memset(iv + tls->fixed_iv_length[1] + 8, 42,
