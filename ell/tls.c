@@ -3418,6 +3418,8 @@ LIB_EXPORT void l_tls_free(struct l_tls *tls)
 		l_free(tls->cipher_suite_pref_list);
 
 	l_free(tls->server_name);
+	l_strv_free(tls->alpn_list);
+	l_free(tls->selected_alpn);
 	l_free(tls);
 }
 
@@ -3662,6 +3664,25 @@ LIB_EXPORT bool l_tls_set_server_name(struct l_tls *tls, const char *name)
 	tls->server_name = l_strdup(name);
 
 	return true;
+}
+
+LIB_EXPORT bool l_tls_set_alpn_list(struct l_tls *tls, const char **list)
+{
+	if (!tls)
+		return false;
+
+	l_strv_free(tls->alpn_list);
+	tls->alpn_list = l_strv_copy((char **) list);
+
+	return true;
+}
+
+LIB_EXPORT const char *l_tls_get_alpn(struct l_tls *tls)
+{
+	if (!tls)
+		return NULL;
+
+	return tls->selected_alpn;
 }
 
 LIB_EXPORT bool l_tls_set_cacert(struct l_tls *tls, struct l_queue *ca_certs)

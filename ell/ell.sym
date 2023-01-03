@@ -515,6 +515,8 @@ global:
 	l_tls_close;
 	l_tls_reset;
 	l_tls_set_server_name;
+	l_tls_set_alpn_list;
+	l_tls_get_alpn;
 	l_tls_set_cacert;
 	l_tls_set_auth_data;
 	l_tls_set_version_range;

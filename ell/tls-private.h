@@ -218,6 +218,8 @@ struct l_tls {
 
 	struct tls_cipher_suite **cipher_suite_pref_list;
 	char *server_name;
+	char **alpn_list;
+	char *selected_alpn;
 
 	struct l_settings *session_settings;
 	char *session_prefix;

@@ -105,6 +105,9 @@ void l_tls_handle_rx(struct l_tls *tls, const uint8_t *data, size_t len);
 
 bool l_tls_set_server_name(struct l_tls *tls, const char *name);
 
+bool l_tls_set_alpn_list(struct l_tls *tls, const char **list);
+const char *l_tls_get_alpn(struct l_tls *tls);
+
 /*
  * If peer is to be authenticated, supply the CA certificates.  On success
  * the l_tls object takes ownership of the queue and the individual l_cert
