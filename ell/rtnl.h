@@ -41,7 +41,7 @@ typedef void (*l_rtnl_neighbor_get_cb_t) (int error, const uint8_t *hwaddr,
 struct l_rtnl_address *l_rtnl_address_new(const char *ip, uint8_t prefix_len);
 struct l_rtnl_address *l_rtnl_address_clone(const struct l_rtnl_address *orig);
 void l_rtnl_address_free(struct l_rtnl_address *addr);
-DEFINE_CLEANUP_FUNC(l_rtnl_address_free);
+DEFINE_CLEANUP_FUNC(l_rtnl_address_free, struct l_rtnl_address *);
 bool l_rtnl_address_get_address(const struct l_rtnl_address *addr,
 				char *out_buf);
 const void *l_rtnl_address_get_in_addr(const struct l_rtnl_address *addr);
@@ -75,7 +75,7 @@ struct l_rtnl_route *l_rtnl_route_new_prefix(const char *ip,
 struct l_rtnl_route *l_rtnl_route_new_static(const char *gw, const char *ip,
 							uint8_t prefix_len);
 void l_rtnl_route_free(struct l_rtnl_route *rt);
-DEFINE_CLEANUP_FUNC(l_rtnl_route_free);
+DEFINE_CLEANUP_FUNC(l_rtnl_route_free, struct l_rtnl_route *);
 uint8_t l_rtnl_route_get_family(const struct l_rtnl_route *rt);
 bool l_rtnl_route_get_gateway(const struct l_rtnl_route *rt, char *out_buf);
 const void *l_rtnl_route_get_gateway_in_addr(const struct l_rtnl_route *rt);
@@ -107,7 +107,7 @@ uint32_t l_rtnl_set_linkmode_and_operstate(struct l_netlink *rtnl, int ifindex,
 					l_netlink_destroy_func_t destroy);
 
 uint32_t l_rtnl_set_mac(struct l_netlink *rtnl, int ifindex,
-					const uint8_t addr[static 6],
+					const uint8_t addr[],
 					bool power_up,
 					l_netlink_command_func_t cb,
 					void *user_data,

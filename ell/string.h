@@ -34,7 +34,7 @@ struct l_string;
 
 struct l_string *l_string_new(size_t initial_length);
 void l_string_free(struct l_string *string);
-DEFINE_CLEANUP_FUNC(l_string_free);
+DEFINE_CLEANUP_FUNC(l_string_free, struct l_string *);
 char *l_string_unwrap(struct l_string *string);
 
 struct l_string *l_string_append(struct l_string *dest, const char *src);
