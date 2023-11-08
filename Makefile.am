@@ -12,7 +12,7 @@ ELL_CURRENT = 0
 ELL_REVISION = 2
 ELL_AGE = 0
 
-linux_headers = linux/gpio.h
+linux_headers = linux/gpio.h linux/netlink.h
 
 pkginclude_HEADERS = ell/ell.h \
 			ell/util.h \
