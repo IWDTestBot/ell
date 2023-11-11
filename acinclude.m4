@@ -75,3 +75,18 @@ AC_DEFUN([COMPILER_FLAGS], [
 		CFLAGS+=" -Wno-unknown-pragmas"
 	fi
 ])
+
+AC_DEFUN([TEST_RTNL], [
+	AC_MSG_CHECKING([for RTA_EXPIRES])
+	AC_LANG_PUSH([C])
+	ac_rtnl_save_CFLAGS="$CFLAGS"
+	CFLAGS=""
+	AC_COMPILE_IFELSE([
+		AC_LANG_PROGRAM([#include <linux/rtnetlink.h>],
+			[enum rtattr_type_t t = RTA_EXPIRES;])],
+		AC_DEFINE(HAVE_RTA_EXPIRES, 1,
+			[Define to 1 if you have the RTA_EXPIRES enum value.])
+		AC_MSG_RESULT([yes]), AC_MSG_RESULT([no]))
+	CFLAGS=$ac_rtnl_save_CFLAGS
+	AC_LANG_POP([C])
+])

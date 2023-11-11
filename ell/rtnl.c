@@ -1348,7 +1348,9 @@ static uint32_t _rtnl_route_change(struct l_netlink *rtnl,
 	size_t bufsize;
 	void *rta_buf;
 	uint16_t flags;
+#ifdef HAVE_RTA_EXPIRES
 	uint64_t now = l_time_now();
+#endif
 
 	bufsize = NLMSG_ALIGN(sizeof(struct rtmsg)) +
 			RTA_SPACE(sizeof(uint32_t)) +        /* RTA_OIF */
@@ -1404,9 +1406,11 @@ static uint32_t _rtnl_route_change(struct l_netlink *rtnl,
 	if (rt->preference)
 		rta_buf += rta_add_u8(rta_buf, RTA_PREF, rt->preference);
 
+#ifdef HAVE_RTA_EXPIRES
 	if (rt->expiry_time > now)
 		rta_buf += rta_add_u32(rta_buf, RTA_EXPIRES,
 					l_time_to_secs(rt->expiry_time - now));
+#endif
 
 	return l_netlink_send(rtnl, nlmsg_type, flags, rtmmsg,
 				rta_buf - (void *) rtmmsg, cb, user_data,
