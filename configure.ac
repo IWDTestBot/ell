@@ -111,6 +111,8 @@ AC_CHECK_FUNC(epoll_create, dummy=yes,
 
 AC_CHECK_HEADERS(linux/types.h linux/if_alg.h)
 
+TEST_RTNL
+
 AC_ARG_ENABLE(glib, AS_HELP_STRING([--enable-glib],
 				[enable ell/glib main loop example]),
 					[enable_glib=${enableval}])
