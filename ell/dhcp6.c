@@ -723,6 +723,8 @@ static int dhcp6_client_send_information_request(struct l_dhcp6_client *client)
 	option_append_elapsed_time(builder, client->transaction_start_t);
 	option_append_option_request(builder, client->request_options,
 					DHCP6_STATE_REQUESTING_INFORMATION);
+	option_append_bytes(builder, DHCP6_OPTION_CLIENT_ID,
+					client->duid, client->duid_len);
 
 	information_request = dhcp6_message_builder_free(builder, false,
 						&information_request_len);
