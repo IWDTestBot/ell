@@ -221,7 +221,7 @@ void *l_malloc(size_t size) __attribute__ ((warn_unused_result, malloc));
 void *l_memdup(const void *mem, size_t size)
 			__attribute__ ((warn_unused_result, malloc));
 void l_free(void *ptr);
-DEFINE_CLEANUP_FUNC(l_free);
+DEFINE_CLEANUP_FUNC(l_free, void *);
 
 void *l_realloc(void *mem, size_t size)
 			__attribute__ ((warn_unused_result, malloc));
@@ -370,8 +370,8 @@ const char *l_util_get_debugfs_path(void);
 static inline int l_secure_memcmp(const void *a, const void *b,
 					size_t size)
 {
-	const volatile uint8_t *aa = a;
-	const volatile uint8_t *bb = b;
+	const volatile uint8_t *aa = (const volatile uint8_t *)a;
+	const volatile uint8_t *bb = (const volatile uint8_t *)b;
 	int res = 0, diff, mask;
 
 	/*
@@ -422,9 +422,9 @@ static inline void l_secure_select(bool select_left,
 				const void *left, const void *right,
 				void *out, size_t len)
 {
-	const uint8_t *l = left;
-	const uint8_t *r = right;
-	uint8_t *o = out;
+	const uint8_t *l = (const uint8_t *)left;
+	const uint8_t *r = (const uint8_t *)right;
+	uint8_t *o = (uint8_t *)out;
 	uint8_t mask = -(!!select_left);
 	size_t i;
 

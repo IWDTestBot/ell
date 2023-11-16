@@ -44,7 +44,7 @@ bool l_icmp6_client_set_debug(struct l_icmp6_client *client,
 				l_icmp6_debug_cb_t function,
 				void *user_data, l_icmp6_destroy_cb_t destroy);
 bool l_icmp6_client_set_address(struct l_icmp6_client *client,
-					const uint8_t addr[static 6]);
+					const uint8_t addr[]);
 bool l_icmp6_client_set_nodelay(struct l_icmp6_client *client, bool nodelay);
 bool l_icmp6_client_set_rtnl(struct l_icmp6_client *client,
 						struct l_netlink *rtnl);

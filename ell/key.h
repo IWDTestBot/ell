@@ -96,9 +96,9 @@ bool l_keyring_restrict(struct l_keyring *keyring, enum l_keyring_restriction re
 			const struct l_keyring *trust);
 
 void l_keyring_free(struct l_keyring *keyring);
-DEFINE_CLEANUP_FUNC(l_keyring_free);
+DEFINE_CLEANUP_FUNC(l_keyring_free, struct l_keyring *);
 void l_keyring_free_norevoke(struct l_keyring *keyring);
-DEFINE_CLEANUP_FUNC(l_keyring_free_norevoke);
+DEFINE_CLEANUP_FUNC(l_keyring_free_norevoke, struct l_keyring *);
 
 bool l_keyring_link(struct l_keyring *keyring, const struct l_key *key);
 

@@ -25,7 +25,7 @@ struct l_settings *l_settings_new(void);
 struct l_settings *l_settings_clone(const struct l_settings *settings);
 
 void l_settings_free(struct l_settings *settings);
-DEFINE_CLEANUP_FUNC(l_settings_free);
+DEFINE_CLEANUP_FUNC(l_settings_free, struct l_settings *);
 
 bool l_settings_load_from_data(struct l_settings *settings,
 						const char *data, size_t len);

@@ -24,7 +24,7 @@ struct l_uintset;
 struct l_uintset *l_uintset_new_from_range(uint32_t min, uint32_t max);
 struct l_uintset *l_uintset_new(unsigned int size);
 void l_uintset_free(struct l_uintset *set);
-DEFINE_CLEANUP_FUNC(l_uintset_free);
+DEFINE_CLEANUP_FUNC(l_uintset_free, struct l_uintset *);
 
 bool l_uintset_contains(struct l_uintset *set, uint32_t number);
 bool l_uintset_take(struct l_uintset *set, uint32_t number);

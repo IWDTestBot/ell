@@ -58,7 +58,7 @@ bool l_ecc_point_y_isodd(const struct l_ecc_point *p);
 
 ssize_t l_ecc_point_get_data(const struct l_ecc_point *p, void *buf, size_t len);
 void l_ecc_point_free(struct l_ecc_point *p);
-DEFINE_CLEANUP_FUNC(l_ecc_point_free);
+DEFINE_CLEANUP_FUNC(l_ecc_point_free, struct l_ecc_point *);
 
 struct l_ecc_scalar *l_ecc_scalar_new(const struct l_ecc_curve *curve,
 						const void *buf, size_t len);
@@ -74,7 +74,7 @@ struct l_ecc_scalar *l_ecc_scalar_new_reduced_1_to_n(
 ssize_t l_ecc_scalar_get_data(const struct l_ecc_scalar *c, void *buf,
 					size_t len);
 void l_ecc_scalar_free(struct l_ecc_scalar *c);
-DEFINE_CLEANUP_FUNC(l_ecc_scalar_free);
+DEFINE_CLEANUP_FUNC(l_ecc_scalar_free, struct l_ecc_scalar *);
 
 /* Constant operations */
 bool l_ecc_scalar_add(struct l_ecc_scalar *ret, const struct l_ecc_scalar *a,
