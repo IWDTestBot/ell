@@ -3404,6 +3404,9 @@ LIB_EXPORT void l_tls_free(struct l_tls *tls)
 	if (tls->cipher_suite_pref_list != tls_cipher_suite_pref)
 		l_free(tls->cipher_suite_pref_list);
 
+	l_free(tls->server_name);
+	l_strv_free(tls->alpn_list);
+	l_free(tls->selected_alpn);
 	l_free(tls);
 }
 
@@ -3639,6 +3642,36 @@ LIB_EXPORT void l_tls_reset(struct l_tls *tls)
 	tls->message_buf_len = 0;
 }
 
+LIB_EXPORT bool l_tls_set_server_name(struct l_tls *tls, const char *name)
+{
+	if (!tls)
+		return false;
+
+	l_free(tls->server_name);
+	tls->server_name = l_strdup(name);
+
+	return true;
+}
+
+LIB_EXPORT bool l_tls_set_alpn_list(struct l_tls *tls, const char **list)
+{
+	if (!tls)
+		return false;
+
+	l_strv_free(tls->alpn_list);
+	tls->alpn_list = l_strv_copy((char **) list);
+
+	return true;
+}
+
+LIB_EXPORT const char *l_tls_get_alpn(struct l_tls *tls)
+{
+	if (!tls)
+		return NULL;
+
+	return tls->selected_alpn;
+}
+
 LIB_EXPORT bool l_tls_set_cacert(struct l_tls *tls, struct l_queue *ca_certs)
 {
 	if (tls->ca_certs) {
@@ -3769,11 +3802,13 @@ LIB_EXPORT void l_tls_set_version_range(struct l_tls *tls,
  * beginning of the mask matches one or more consecutive labels from
  * the beginning of the domain string.
  */
-LIB_EXPORT void l_tls_set_domain_mask(struct l_tls *tls, char **mask)
+LIB_EXPORT void l_tls_set_domain_mask(struct l_tls *tls, const char **mask)
 {
-	l_strv_free(tls->subject_mask);
+	if (!tls)
+		return;
 
-	tls->subject_mask = l_strv_copy(mask);
+	l_strv_free(tls->subject_mask);
+	tls->subject_mask = l_strv_copy((char **) mask);
 }
 
 /**

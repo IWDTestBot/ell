@@ -18,6 +18,91 @@
 #include "cert.h"
 #include "tls-private.h"
 
+static ssize_t tls_server_name_client_write(struct l_tls *tls,
+						uint8_t *buf, size_t len)
+{
+	size_t hlen;
+
+	if (!tls->server_name)
+		return -ENOMSG;
+
+	hlen = strlen(tls->server_name);
+
+	if (len < hlen + 5)
+		return -ENOMEM;
+
+	l_put_be16(hlen + 3, buf);
+	l_put_u8(0, buf + 2);
+	l_put_be16(hlen, buf + 3);
+	memcpy(buf + 5, tls->server_name, hlen);
+
+	return hlen + 5;
+}
+
+static ssize_t tls_alpn_client_write(struct l_tls *tls,
+						uint8_t *buf, size_t len)
+{
+	uint8_t *ptr = buf + 2;
+	uint16_t ext_len = 0;
+	int i;
+
+	if (!tls->alpn_list)
+		return -ENOMSG;
+
+	if (len < 2)
+		return -ENOMEM;
+
+	for (i = 0; tls->alpn_list[i]; i++) {
+		uint8_t str_len = strlen(tls->alpn_list[i]);
+		l_put_u8(str_len, ptr);
+		memcpy(ptr + 1, tls->alpn_list[i], str_len);
+		ptr += str_len + 1;
+		ext_len += str_len + 1;
+	}
+
+	l_put_be16(ext_len, buf);
+
+	return ext_len + 2;
+}
+
+static bool tls_alpn_server_handle(struct l_tls *tls,
+						const uint8_t *buf, size_t len)
+{
+	uint16_t ext_len;
+	uint8_t str_len;
+
+	if (len < 2)
+		return false;
+
+	ext_len = l_get_be16(buf);
+	if (ext_len != len - 2)
+		return false;
+
+	str_len = l_get_u8(buf + 2);
+	if (str_len != len - 3)
+		return false;
+
+	l_free(tls->selected_alpn);
+	tls->selected_alpn = l_strndup((const char *) buf + 3, str_len);
+
+	TLS_DEBUG("Negotiated ALPN %s", tls->selected_alpn);
+
+	return true;
+}
+
+static bool tls_alpn_server_absent(struct l_tls *tls)
+{
+	if (!tls->alpn_list)
+		return false;
+
+	l_free(tls->selected_alpn);
+	tls->selected_alpn = NULL;
+
+	TLS_DEBUG("ALPN not supported");
+
+	return true;
+}
+
 /* Most extensions are not used when resuming a cached session */
 #define SKIP_ON_RESUMPTION()	\
 	do {	\
@@ -963,6 +1048,13 @@ static bool tls_renegotiation_info_absent(struct l_tls *tls)
 
 const struct tls_hello_extension tls_extensions[] = {
 	{
+		"Server Name", "server_name", 0,
+		tls_server_name_client_write,
+		NULL,
+		NULL,
+		NULL, NULL, NULL,
+	},
+	{
 		"Supported Groups", "elliptic_curves", 10,
 		tls_elliptic_curves_client_write,
 		tls_elliptic_curves_client_handle,
@@ -983,6 +1075,15 @@ const struct tls_hello_extension tls_extensions[] = {
 		tls_signature_algorithms_client_handle,
 		tls_signature_algorithms_client_absent,
 		NULL, NULL, NULL,
+	},
+	{
+		"ALPN", "application_layer_protocol_negotiation", 16,
+		tls_alpn_client_write,
+		NULL,
+		NULL,
+		NULL,
+		tls_alpn_server_handle,
+		tls_alpn_server_absent,
 	},
 	{
 		"Secure Renegotiation", "renegotiation_info", 0xff01,
