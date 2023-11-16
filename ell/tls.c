@@ -3059,7 +3059,7 @@ static void tls_finished(struct l_tls *tls)
 
 	if (!renegotiation) {
 		tls->in_callback = true;
-		tls->ready_handle(peer_identity, tls->user_data);
+		tls->ready_handler(peer_identity, tls->user_data);
 		tls->in_callback = false;
 	}
 
@@ -3344,11 +3344,14 @@ LIB_EXPORT struct l_tls *l_tls_new(bool server,
 	if (!l_key_is_supported(L_KEY_FEATURE_CRYPTO))
 		return NULL;
 
+	if (!tx_handler || !ready_handler || !disconnect_handler)
+		return NULL;
+
 	tls = l_new(struct l_tls, 1);
 	tls->server = server;
 	tls->rx = app_data_handler;
 	tls->tx = tx_handler;
-	tls->ready_handle = ready_handler;
+	tls->ready_handler = ready_handler;
 	tls->disconnected = disconnect_handler;
 	tls->user_data = user_data;
 	tls->cipher_suite_pref_list = tls_cipher_suite_pref;
@@ -3548,7 +3551,8 @@ bool tls_handle_message(struct l_tls *tls, const uint8_t *message,
 			return true;
 
 		tls->in_callback = true;
-		tls->rx(message, len, tls->user_data);
+		if (tls->rx)
+			tls->rx(message, len, tls->user_data);
 		tls->in_callback = false;
 
 		if (tls->pending_destroy) {
