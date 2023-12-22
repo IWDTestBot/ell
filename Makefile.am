@@ -55,6 +55,8 @@ pkginclude_HEADERS = ell/ell.h \
 			ell/ecc.h \
 			ell/ecdh.h \
 			ell/time.h \
+			ell/edit.h \
+			ell/term.h \
 			ell/gpio.h \
 			ell/path.h \
 			ell/icmp6.h \
@@ -145,6 +147,8 @@ ell_libell_la_SOURCES = $(linux_headers) \
 			ell/ecdh.c \
 			ell/time.c \
 			ell/time-private.h \
+			ell/edit.c \
+			ell/term.c \
 			ell/gpio.c \
 			ell/path.c \
 			ell/icmp6.c \
@@ -405,6 +409,14 @@ tools_genl_request_LDADD = ell/libell-private.la
 
 tools_gpio_SOURCES = tools/gpio.c
 tools_gpio_LDADD = ell/libell-private.la
+
+noinst_PROGRAMS += demo-edit demo-cli
+
+demo_edit_SOURCES = demo-edit.c
+demo_edit_LDADD = ell/libell-private.la -lcursesw
+
+demo_cli_SOURCES = demo-cli.c
+demo_cli_LDADD = ell/libell-private.la
 
 EXTRA_DIST = ell/ell.sym \
 		$(unit_test_data_files) unit/gencerts.cnf unit/plaintext.txt
