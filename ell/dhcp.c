@@ -557,9 +557,14 @@ static void dhcp_client_timeout_resend(struct l_timeout *timeout,
 		 * RFC 2131 Section 4.1:
 		 * "The retransmission delay SHOULD be doubled with subsequent
 		 * retransmissions up to a maximum of 64 seconds.
+		 *
+		 * More than 5 attempts will trigger the maximum, don't increase
+		 * any more to avoid overflowing next_timeout.
 		 */
-		client->attempt += 1;
-		next_timeout = minsize(2 << client->attempt, 64);
+		if (client->attempt > 5)
+			next_timeout = 64;
+		else
+			next_timeout = 2 << client->attempt++;
 		break;
 	case DHCP_STATE_INIT:
 	case DHCP_STATE_INIT_REBOOT:
