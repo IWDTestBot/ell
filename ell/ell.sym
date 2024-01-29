@@ -307,10 +307,12 @@ global:
 	l_dhcp6_lease_get_preferred_lifetime;
 	l_dhcp6_lease_get_start_time;
 	/* dir */
+	l_dir_create;
 	l_dir_watch_new;
 	l_dir_watch_destroy;
 	/* file */
 	l_file_get_contents;
+	l_file_set_contents;
 	/* genl */
 	l_genl_new;
 	l_genl_ref;
