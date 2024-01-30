@@ -10,3 +10,9 @@
 #define DEFINE_CLEANUP_FUNC(func)			\
 	inline __attribute__((always_inline))		\
 	void func ## _cleanup(void *p) { func(*(void **) p); }
+
+#define __AUTODESTRUCT(func)				\
+	__attribute((cleanup(func ## _cleanup)))
+
+#define _auto_(func)					\
+	__AUTODESTRUCT(func)

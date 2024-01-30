@@ -15,6 +15,8 @@
 #include <endian.h>
 #include <byteswap.h>
 #include <sys/uio.h>
+#include <errno.h>
+#include <unistd.h>
 #include <ell/cleanup.h>
 
 #ifdef __cplusplus
@@ -436,6 +438,15 @@ int l_safe_atou32(const char *s, uint32_t *out_u);
 int l_safe_atox32(const char *s, uint32_t *out_u);
 int l_safe_atox16(const char *s, uint16_t *out_u);
 int l_safe_atox8(const char *s, uint8_t *out_u);
+
+/* Enables declaring _auto_(close) int fd = <-1 or L_TFR(open(...))>; */
+inline __attribute__((always_inline)) void close_cleanup(void *p)
+{
+	int fd = *(int *) p;
+
+	if (fd >= 0)
+		L_TFR(close(fd));
+}
 
 #ifdef __cplusplus
 }
