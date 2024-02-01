@@ -150,4 +150,6 @@ AC_SUBST(OPENSSL_PROVIDER)
 
 AC_CONFIG_FILES(Makefile ell/ell.pc)
 
+AC_DEFINE([_auto_], [__L_AUTODESTRUCT], [autodestruct syntax])
+
 AC_OUTPUT
