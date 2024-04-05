@@ -46,6 +46,7 @@
 #include <ell/ecc.h>
 #include <ell/ecdh.h>
 #include <ell/time.h>
+#include <ell/edit.h>
 #include <ell/gpio.h>
 #include <ell/path.h>
 #include <ell/acd.h>
