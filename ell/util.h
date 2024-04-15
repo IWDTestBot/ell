@@ -349,8 +349,8 @@ inline __attribute__((always_inline)) void _l_close_cleanup(void *p)
 #define _L_IN_SET_CMP(val, type, cmp, ...) __extension__ ({		\
 		const type __v = (val);					\
 		const typeof(__v) __elems[] = {__VA_ARGS__};		\
-		unsigned int __i;					\
-		static const unsigned int __n = L_ARRAY_SIZE(__elems);	\
+		size_t __i;						\
+		size_t __n = L_ARRAY_SIZE(__elems);			\
 		bool __r = false;					\
 		for (__i = 0; __i < __n && !__r; __i++)			\
 			__r = (cmp);					\
@@ -365,6 +365,38 @@ inline __attribute__((always_inline)) void _l_close_cleanup(void *p)
 	_L_IN_SET_CMP((val), char *, __v == __elems[__i] ||		\
 				(__v && __elems[__i] &&			\
 				 !strcmp(__v, __elems[__i])), ##__VA_ARGS__)
+
+#define _L_BIT_TO_MASK(bits, nr) __extension__ ({			\
+	const unsigned int shift = (nr) % (sizeof(*(bits)) * 8);	\
+	const typeof(*(bits)) mask = (typeof(*(bits)))1 << shift;	\
+	mask;								\
+})
+
+#define _L_BIT_TO_OFFSET(bits, nr)					\
+	(*((bits) + ((nr) / (sizeof(*(bits)) * 8))))			\
+
+#define L_BIT_SET(bits, nr)						\
+	_L_BIT_TO_OFFSET(bits, nr) |= _L_BIT_TO_MASK(bits, nr)
+
+#define L_BIT_CLEAR(bits, nr)						\
+	_L_BIT_TO_OFFSET(bits, nr) &= ~_L_BIT_TO_MASK(bits, nr)
+
+#define L_BIT_TEST(bits, nr)						\
+	((~_L_BIT_TO_OFFSET(bits, nr) & _L_BIT_TO_MASK(bits, nr)) == 0)
+
+#define L_BITS_SET(bits, ...) __extension__ ({				\
+	const unsigned int __elems[] = {__VA_ARGS__};			\
+	size_t __i;							\
+	for (__i = 0; __i < L_ARRAY_SIZE(__elems); __i++)		\
+		L_BIT_SET(bits, __elems[__i]);				\
+})
+
+#define L_BITS_CLEAR(bits, ...) __extension__ ({			\
+	const unsigned int __elems[] = {__VA_ARGS__};			\
+	size_t __i;							\
+	for (__i = 0; __i < L_ARRAY_SIZE(__elems); __i++)		\
+		L_BIT_CLEAR(bits, __elems[__i]);			\
+})
 
 /*
  * Taken from https://github.com/chmike/cst_time_memcmp, adding a volatile to
