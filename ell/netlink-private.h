@@ -31,6 +31,21 @@ enum nlmsgerr_attrs {
 #define NLM_F_ACK_TLVS 0x200
 #endif
 
+struct l_netlink_message {
+	int ref_count;
+	uint32_t size;
+	union { /* The actual data */
+		struct nlmsghdr *hdr;
+		void *data;
+	};
+	uint32_t nest_offset[4];
+	uint8_t nest_level;
+};
+
 bool netlink_parse_ext_ack_error(const struct nlmsghdr *nlmsg,
 					const char **out_error_msg,
 					uint32_t *out_error_offset);
+int netlink_message_reserve_header(struct l_netlink_message *message,
+					size_t header_len, void **out_header);
+struct l_netlink_message *netlink_message_from_nlmsg(
+						const struct nlmsghdr *nlmsg);

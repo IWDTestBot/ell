@@ -12,6 +12,7 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include <linux/netlink.h>
+#include <limits.h>
 
 #include "useful.h"
 #include "hashmap.h"
@@ -686,4 +687,276 @@ bool netlink_parse_ext_ack_error(const struct nlmsghdr *nlmsg,
 	}
 
 	return true;
+}
+
+static int message_grow(struct l_netlink_message *message, uint32_t needed)
+{
+	uint32_t grow_to;
+
+	if (message->size - message->hdr->nlmsg_len >= needed)
+		return 0;
+
+	/*
+	 * Kernel places a practical limit on the size of messages it will
+	 * accept, at least without tweaking SNDBUF.  There's no (known) reason
+	 * to send very large messages, so limit accordingly
+	 */
+	grow_to = message->hdr->nlmsg_len + needed;
+	if (grow_to > (1U << 20))
+		return -EMSGSIZE;
+
+	if (grow_to < l_util_pagesize())
+		grow_to = roundup_pow_of_two(grow_to);
+	else
+		grow_to = align_len(grow_to, l_util_pagesize());
+
+	message->data = l_realloc(message->data, grow_to);
+	message->size = grow_to;
+
+	return 0;
+}
+
+static inline void *message_tail(struct l_netlink_message *message)
+{
+	return message->data + NLMSG_ALIGN(message->hdr->nlmsg_len);
+}
+
+static int add_attribute(struct l_netlink_message *message,
+				uint16_t type, size_t len,
+				void **out_dest)
+{
+	struct nlattr *attr = message_tail(message);
+	int offset = message->hdr->nlmsg_len;
+	int i;
+
+	for (i = 0; i < message->nest_level; i++) {
+		uint32_t nested_len = offset + NLA_HDRLEN + NLA_ALIGN(len) -
+					message->nest_offset[i];
+
+		if (nested_len > USHRT_MAX)
+			return -ERANGE;
+	}
+
+	attr->nla_type = type;
+	attr->nla_len = NLA_HDRLEN + len;
+
+	if (len) {
+		void *dest = message_tail(message) + NLA_HDRLEN;
+
+		memset(dest + len, 0, NLA_ALIGN(len) - len);
+
+		if (out_dest)
+			*out_dest = dest;
+	}
+
+	message->hdr->nlmsg_len += NLA_HDRLEN + NLA_ALIGN(len);
+
+	return offset;
+}
+
+LIB_EXPORT struct l_netlink_message *l_netlink_message_new_sized(uint16_t type,
+					uint16_t flags, size_t initial_len)
+{
+	struct l_netlink_message *message;
+
+	message = l_new(struct l_netlink_message, 1);
+
+	message->size = initial_len + NLMSG_HDRLEN;
+	message->hdr = l_realloc(NULL, message->size);
+	memset(message->hdr, 0, NLMSG_HDRLEN);
+
+	message->hdr->nlmsg_len = NLMSG_HDRLEN;
+	message->hdr->nlmsg_type = type;
+	message->hdr->nlmsg_flags = flags;
+	/* seq and pid will be filled on send */
+	message->hdr->nlmsg_pid = 0;
+
+	return l_netlink_message_ref(message);
+
+}
+
+LIB_EXPORT struct l_netlink_message *l_netlink_message_new(uint16_t type,
+								uint16_t flags)
+{
+	return l_netlink_message_new_sized(type, flags, 256 - NLMSG_HDRLEN);
+}
+
+struct l_netlink_message *netlink_message_from_nlmsg(
+						const struct nlmsghdr *nlmsg)
+{
+	struct l_netlink_message *message = l_new(struct l_netlink_message, 1);
+
+	message->hdr = l_memdup(nlmsg, nlmsg->nlmsg_len);
+	message->size = nlmsg->nlmsg_len;
+
+	return l_netlink_message_ref(message);
+}
+
+LIB_EXPORT struct l_netlink_message *l_netlink_message_ref(
+					struct l_netlink_message *message)
+{
+	if (unlikely(!message))
+		return NULL;
+
+	__atomic_fetch_add(&message->ref_count, 1, __ATOMIC_SEQ_CST);
+
+	return message;
+}
+
+LIB_EXPORT void l_netlink_message_unref(struct l_netlink_message *message)
+{
+	if (unlikely(!message))
+		return;
+
+	if (__atomic_sub_fetch(&message->ref_count, 1, __ATOMIC_SEQ_CST))
+		return;
+
+	l_free(message->hdr);
+	l_free(message);
+}
+
+LIB_EXPORT int l_netlink_message_append(struct l_netlink_message *message,
+						uint16_t type,
+						const void *data, size_t len)
+{
+	void *dest;
+	int r;
+
+	if (unlikely(!message))
+		return -EINVAL;
+
+	if (len > USHRT_MAX - NLA_HDRLEN)
+		return -ERANGE;
+
+	r = message_grow(message, NLA_HDRLEN + NLA_ALIGN(len));
+	if (r < 0)
+		return r;
+
+	r = add_attribute(message, type, len, &dest);
+	if (r < 0)
+		return r;
+
+	memcpy(dest, data, len);
+
+	return 0;
+}
+
+LIB_EXPORT int l_netlink_message_appendv(struct l_netlink_message *message,
+					uint16_t type,
+					const struct iovec *iov, size_t iov_len)
+{
+	size_t len = 0;
+	void *dest;
+	size_t i;
+	int r;
+
+	if (unlikely(!message))
+		return -EINVAL;
+
+	for (i = 0; i < iov_len; i++)
+		len += iov[i].iov_len;
+
+	if (len > USHRT_MAX - NLA_HDRLEN)
+		return -ERANGE;
+
+	r = message_grow(message, NLA_HDRLEN + NLA_ALIGN(len));
+	if (r < 0)
+		return r;
+
+	r = add_attribute(message, type, len, &dest);
+	if (r < 0)
+		return r;
+
+	for (i = 0, len = 0; i < iov_len; i++, iov++) {
+		memcpy(dest + len, iov->iov_base, iov->iov_len);
+		len += iov->iov_len;
+	}
+
+	return 0;
+}
+
+int netlink_message_reserve_header(struct l_netlink_message *message,
+					size_t len, void **out_header)
+{
+	int r;
+
+	if (message->hdr->nlmsg_len != NLMSG_HDRLEN)
+		return -EBADE;
+
+	if (len > USHRT_MAX)
+		return -ERANGE;
+
+	r = message_grow(message, NLA_ALIGN(len));
+	if (r < 0)
+		return r;
+
+	if (out_header)
+		*out_header = message_tail(message);
+
+	memset(message_tail(message) + len, 0, NLA_ALIGN(len) - len);
+	message->hdr->nlmsg_len += NLA_ALIGN(len);
+	return 0;
+}
+
+LIB_EXPORT int l_netlink_message_add_header(struct l_netlink_message *message,
+						const void *header,
+						size_t len)
+{
+	int r;
+	void *dest;
+
+	if (unlikely(!message || !len))
+		return -EINVAL;
+
+	r = netlink_message_reserve_header(message, len, &dest);
+	if (r < 0)
+		return r;
+
+	memcpy(dest, header, len);
+	return 0;
+}
+
+LIB_EXPORT int l_netlink_message_enter_nested(struct l_netlink_message *message,
+						uint16_t type)
+{
+	int r;
+
+	if (unlikely(!message))
+		return -EINVAL;
+
+	if (unlikely(message->nest_level == L_ARRAY_SIZE(message->nest_offset)))
+		return -EOVERFLOW;
+
+	r = message_grow(message, NLA_HDRLEN);
+	if (r < 0)
+		return r;
+
+	r = add_attribute(message, type | NLA_F_NESTED, 0, NULL);
+	if (r < 0)
+		return false;
+
+	message->nest_offset[message->nest_level] = r;
+	message->nest_level += 1;
+
+	return 0;
+}
+
+LIB_EXPORT int l_netlink_message_leave_nested(struct l_netlink_message *message)
+{
+	struct nlattr *nla;
+	uint32_t offset;
+
+	if (unlikely(!message))
+		return -EINVAL;
+
+	if (unlikely(message->nest_level == 0))
+		return -EOVERFLOW;
+
+	message->nest_level -= 1;
+	offset = message->nest_offset[message->nest_level];
+
+	nla = message->data + offset;
+	nla->nla_len = message->hdr->nlmsg_len - offset;
+
+	return 0;
 }
