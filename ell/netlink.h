@@ -10,6 +10,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <string.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -36,6 +37,7 @@ unsigned int l_netlink_send(struct l_netlink *netlink,
 				void *user_data,
 				l_netlink_destroy_func_t destroy);
 bool l_netlink_cancel(struct l_netlink *netlink, unsigned int id);
+bool l_netlink_request_sent(struct l_netlink *netlink, unsigned int id);
 
 unsigned int l_netlink_register(struct l_netlink *netlink,
 			uint32_t group, l_netlink_notify_func_t function,
@@ -118,6 +120,29 @@ static inline int l_netlink_message_append_mac(struct l_netlink_message *message
 {
 	return l_netlink_message_append(message, type, mac, 6);
 }
+
+static inline int l_netlink_message_append_string(
+					struct l_netlink_message *message,
+					uint16_t type,
+					const char *str)
+{
+	return l_netlink_message_append(message, type, str, strlen(str) + 1);
+}
+
+struct l_netlink_attr {
+	const struct nlattr *data;
+	uint32_t len;
+	const struct nlattr *next_data;
+	uint32_t next_len;
+};
+
+int l_netlink_attr_init(struct l_netlink_attr *attr, size_t header_len,
+					const void *data, uint32_t len);
+int l_netlink_attr_next(struct l_netlink_attr *attr,
+					uint16_t *type, uint16_t *len,
+					const void **data);
+int l_netlink_attr_recurse(const struct l_netlink_attr *iter,
+					struct l_netlink_attr *nested);
 
 #ifdef __cplusplus
 }

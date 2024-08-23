@@ -467,6 +467,24 @@ LIB_EXPORT bool l_netlink_cancel(struct l_netlink *netlink, unsigned int id)
 	return true;
 }
 
+LIB_EXPORT bool l_netlink_request_sent(struct l_netlink *netlink,
+							unsigned int id)
+{
+	struct command *command;
+	struct nlmsghdr *hdr;
+
+	if (unlikely(!netlink || !id))
+		return false;
+
+	command = l_hashmap_lookup(netlink->command_lookup, L_UINT_TO_PTR(id));
+	if (!command)
+		return false;
+
+	hdr = command->message->hdr;
+	return l_hashmap_lookup(netlink->command_pending,
+					L_UINT_TO_PTR(hdr->nlmsg_seq));
+}
+
 static bool add_membership(struct l_netlink *netlink, uint32_t group)
 {
 	int sk, value = group;
@@ -941,6 +959,81 @@ LIB_EXPORT int l_netlink_message_leave_nested(struct l_netlink_message *message)
 
 	nla = message->data + offset;
 	nla->nla_len = message->hdr->nlmsg_len - offset;
+
+	return 0;
+}
+
+LIB_EXPORT int l_netlink_attr_init(struct l_netlink_attr *iter,
+					size_t header_len,
+					const void *data, uint32_t len)
+{
+	const struct nlattr *nla;
+
+	if (unlikely(!iter) || unlikely(!data))
+		return -EINVAL;
+
+	if (len < NLA_ALIGN(header_len))
+		return -EMSGSIZE;
+
+	nla = data + NLA_ALIGN(header_len);
+	len -= NLA_ALIGN(header_len);
+
+	if (!NLA_OK(nla, len))
+		return -EMSGSIZE;
+
+	iter->data = NULL;
+	iter->len = 0;
+	iter->next_data = nla;
+	iter->next_len = len;
+
+	return 0;
+}
+
+LIB_EXPORT int l_netlink_attr_next(struct l_netlink_attr *iter,
+					uint16_t *type, uint16_t *len,
+					const void **data)
+{
+	const struct nlattr *nla;
+
+	if (unlikely(!iter))
+		return -EINVAL;
+
+	nla = iter->next_data;
+	if (!NLA_OK(nla, iter->next_len))
+		return -EMSGSIZE;
+
+	if (type)
+		*type = nla->nla_type & NLA_TYPE_MASK;
+
+	if (len)
+		*len = NLA_PAYLOAD(nla);
+
+	if (data)
+		*data = NLA_DATA(nla);
+
+	iter->data = iter->next_data;
+	iter->len = iter->next_len;
+
+	iter->next_data = NLA_NEXT(nla, iter->next_len);
+	return 0;
+}
+
+LIB_EXPORT int l_netlink_attr_recurse(const struct l_netlink_attr *iter,
+					struct l_netlink_attr *nested)
+{
+	const struct nlattr *nla;
+
+	if (unlikely(!iter) || unlikely(!nested))
+		return -EINVAL;
+
+	nla = iter->data;
+	if (!nla)
+		return false;
+
+	nested->data = NULL;
+	nested->len = 0;
+	nested->next_data = NLA_DATA(nla);
+	nested->next_len = NLA_PAYLOAD(nla);
 
 	return 0;
 }

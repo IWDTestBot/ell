@@ -344,8 +344,6 @@ global:
 	l_genl_msg_enter_nested;
 	l_genl_msg_leave_nested;
 	l_genl_attr_init;
-	l_genl_attr_next;
-	l_genl_attr_recurse;
 	l_genl_family_info_can_send;
 	l_genl_family_info_can_dump;
 	l_genl_family_info_has_group;
@@ -433,6 +431,7 @@ global:
 	l_netlink_destroy;
 	l_netlink_send;
 	l_netlink_cancel;
+	l_netlink_request_sent;
 	l_netlink_register;
 	l_netlink_unregister;
 	l_netlink_set_debug;
@@ -445,6 +444,9 @@ global:
 	l_netlink_message_add_header;
 	l_netlink_message_enter_nested;
 	l_netlink_message_leave_nested;
+	l_netlink_attr_init;
+	l_netlink_attr_next;
+	l_netlink_attr_recurse;
 	/* path */
 	l_basename;
 	l_path_find;
@@ -699,6 +701,7 @@ global:
 	l_rtnl_set_linkmode_and_operstate;
 	l_rtnl_set_mac;
 	l_rtnl_set_powered;
+	l_rtnl_link_set_mtu;
 	l_rtnl_ifaddr4_extract;
 	l_rtnl_ifaddr4_dump;
 	l_rtnl_ifaddr4_add;
