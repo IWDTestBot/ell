@@ -527,6 +527,7 @@ global:
 	/* timeout */
 	l_timeout_create;
 	l_timeout_create_ms;
+	l_timeout_get_remaining;
 	l_timeout_modify;
 	l_timeout_modify_ms;
 	l_timeout_remove;
