@@ -243,6 +243,16 @@ static inline void l_put_be64(uint64_t val, void *ptr)
 void *l_malloc(size_t size) __attribute__ ((warn_unused_result, malloc));
 void *l_memdup(const void *mem, size_t size)
 			__attribute__ ((warn_unused_result, malloc));
+
+static inline void * __attribute__((nonnull(1))) l_safe_memcpy(void *dest,
+						const void *src, size_t n)
+{
+	if (!n)
+		return dest;
+
+	return __builtin_memcpy(dest, src, n);
+}
+
 void l_free(void *ptr);
 DEFINE_CLEANUP_FUNC(l_free);
 
