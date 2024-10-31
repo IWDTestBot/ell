@@ -288,6 +288,18 @@ static void test_roundup_pow_of_two(const void *test_data)
 	}
 }
 
+static void test_l_memcpy(const void *test_data)
+{
+	static const uint8_t src[] = { 0x00, 0xff, 0xff, 0xff };
+	uint8_t dst[10];
+
+	memset(dst, 0, sizeof(dst));
+	assert(l_memcpy(dst, src, sizeof(src)) == dst);
+	assert(!memcmp(dst, src, sizeof(src)));
+	assert(l_memcpy(dst, src, 0) == dst);
+	assert(l_memcpy(dst, NULL, 0) == dst);
+}
+
 int main(int argc, char *argv[])
 {
 	l_test_init(&argc, &argv);
@@ -312,6 +324,8 @@ int main(int argc, char *argv[])
 	l_test_add("L_BITS_CLEAR", test_clear_bits, NULL);
 
 	l_test_add("roundup_pow_of_two", test_roundup_pow_of_two, NULL);
+
+	l_test_add("l_memcpy", test_l_memcpy, NULL);
 
 	return l_test_run();
 }
