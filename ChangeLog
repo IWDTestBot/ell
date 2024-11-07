@@ -1,3 +1,6 @@
+ver 0.70:
+	Add support for helper function for safe memcpy.
+
 ver 0.69:
 	Add support for getting remaining microseconds left on a timer.
 	Add support for setting link MTU on a network interface.
