@@ -1697,10 +1697,10 @@ LIB_EXPORT void *l_dbus_object_get_data(struct l_dbus *dbus, const char *object,
 					const char *interface)
 {
 	if (unlikely(!dbus))
-		return false;
+		return NULL;
 
 	if (unlikely(!dbus->tree))
-		return false;
+		return NULL;
 
 	return _dbus_object_tree_get_interface_data(dbus->tree, object,
 							interface);
