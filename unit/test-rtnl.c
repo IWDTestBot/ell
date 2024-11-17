@@ -358,6 +358,12 @@ static void test_next()
 	test->start(rtnl, test->data);
 }
 
+static void test_next_cb(void * unused)
+{
+	(void)unused;
+	test_next();
+}
+
 #define test_assert(cond)	\
 	do {	\
 		if (!(cond)) {	\
@@ -498,7 +504,7 @@ static void test_run(void)
 {
 	success = false;
 
-	l_idle_oneshot(test_next, NULL, NULL);
+	l_idle_oneshot(test_next_cb, NULL, NULL);
 	l_main_run_with_signal(signal_handler, NULL);
 }
 
