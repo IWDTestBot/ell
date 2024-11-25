@@ -1,3 +1,6 @@
+ver 0.71:
+	Fix issue with GCC 15 and -std=c23 build errors.
+
 ver 0.70:
 	Add support for helper function for safe memcpy.
 
