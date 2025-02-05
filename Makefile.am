@@ -414,7 +414,10 @@ tools_gpio_LDADD = ell/libell-private.la
 EXTRA_DIST = ell/ell.sym \
 		$(unit_test_data_files) unit/gencerts.cnf unit/plaintext.txt
 
-TESTS = $(unit_tests)
+TESTS =
+
+if TESTS
+TESTS += $(unit_tests)
 
 if DBUS_TESTS
 TESTS += $(dbus_tests)
@@ -422,6 +425,7 @@ endif
 
 if CERT_TESTS
 TESTS += $(cert_tests)
+endif
 endif
 
 DISTCLEANFILES = $(unit_tests) $(dbus_tests) $(cert_tests)
