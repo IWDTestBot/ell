@@ -10,6 +10,8 @@
 #endif
 
 #include <stdio.h>
+
+#include <ell/ell.h>
 #include "ell/siphash-private.h"
 
 /*
@@ -88,7 +90,7 @@ static const uint8_t vectors[64][8] = {
 	{ 0x72, 0x45, 0x06, 0xeb, 0x4c, 0x32, 0x8a, 0x95 },
 };
 
-int main(int argc, char *argv[])
+static void test_siphash(const void *data)
 {
 	uint8_t in[64], out[8], k[16];
 	int i;
@@ -104,6 +106,13 @@ int main(int argc, char *argv[])
 		if (memcmp(out, vectors[i], 8))
 			printf("[%d] mismatch\n", i);
 	}
+}
 
-	return 0;
+int main(int argc, char *argv[])
+{
+	l_test_init(&argc, &argv);
+
+	l_test_add("siphash", test_siphash, NULL);
+
+	return l_test_run();
 }
