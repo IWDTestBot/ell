@@ -69,7 +69,7 @@ static void remove_handler(struct l_timeout *timeout, void *user_data)
 	l_info("Timer removed itself");
 }
 
-int main(int argc, char *argv[])
+static void test_main(const void *data)
 {
 	struct l_timeout *timeout_quit;
 	struct l_timeout *race_delay;
@@ -79,7 +79,7 @@ int main(int argc, char *argv[])
 	struct l_idle *idle;
 
 	if (!l_main_init())
-		return -1;
+		return;
 
 	timeout_quit = l_timeout_create(3, timeout_quit_handler, NULL, NULL);
 
@@ -92,8 +92,6 @@ int main(int argc, char *argv[])
 	idle = l_idle_create(idle_handler, NULL, NULL);
 
 	l_log_set_stderr();
-
-	l_debug_enable("*");
 
 	l_debug("hello");
 
@@ -116,6 +114,13 @@ int main(int argc, char *argv[])
 	l_idle_remove(idle);
 
 	l_main_exit();
+}
 
-	return 0;
+int main(int argc, char *argv[])
+{
+	l_test_init(&argc, &argv);
+
+	l_test_add("main", test_main, NULL);
+
+	return l_test_run();
 }
