@@ -66,7 +66,7 @@ static void link_notification(uint16_t type, void const * data,
 {
 }
 
-int main(int argc, char *argv[])
+static void test_netlink(const void *data)
 {
 	struct l_netlink *netlink;
 	struct ifinfomsg ifi;
@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
 	unsigned int link_id;
 
 	if (!l_main_init())
-		return -1;
+		return;
 
 	l_log_set_stderr();
 
@@ -99,6 +99,13 @@ int main(int argc, char *argv[])
 	l_netlink_destroy(netlink);
 
 	l_main_exit();
+}
 
-	return 0;
+int main(int argc, char *argv[])
+{
+	l_test_init(&argc, &argv);
+
+	l_test_add("netlink", test_netlink, NULL);
+
+	return l_test_run();
 }
