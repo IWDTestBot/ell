@@ -58,7 +58,7 @@ static void check_entry(const char *modalias, struct l_hwdb_entry *entries,
 	}
 }
 
-int main(int argc, char *argv[])
+static void test_hwdb(const void *data)
 {
 	struct l_hwdb *hwdb;
 	struct hwdb_stats stats = { 0 };
@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
 	hwdb = l_hwdb_new_default();
 	if (!hwdb) {
 		printf("hwdb.bin not loaded\n");
-		return 0;
+		return;
 	}
 
 	l_hwdb_foreach(hwdb, check_entry, &stats);
@@ -86,6 +86,13 @@ int main(int argc, char *argv[])
 	print_modalias(hwdb, "sdio:c02");
 
 	l_hwdb_unref(hwdb);
+}
 
-	return 0;
+int main(int argc, char *argv[])
+{
+	l_test_init(&argc, &argv);
+
+	l_test_add("hwdb", test_hwdb, NULL);
+
+	return l_test_run();
 }
