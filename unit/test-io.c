@@ -55,19 +55,19 @@ static void disconnect_handler(struct l_io *io, void *user_data)
 	l_info("disconnect");
 }
 
-int main(int argc, char *argv[])
+static void test_io(const void *data)
 {
 	struct l_io *io1, *io2;
 	int fd[2];
 
 	if (!l_main_init())
-		return -1;
+		return;
 
 	l_log_set_stderr();
 
 	if (socketpair(PF_UNIX, SOCK_STREAM | SOCK_NONBLOCK, 0, fd) < 0) {
 		l_error("Failed to create socket pair");
-		return 0;
+		return;
 	}
 
 	io1 = l_io_new(fd[0]);
@@ -88,6 +88,13 @@ int main(int argc, char *argv[])
 	l_io_destroy(io1);
 
 	l_main_exit();
+}
 
-	return 0;
+int main(int argc, char *argv[])
+{
+	l_test_init(&argc, &argv);
+
+	l_test_add("io", test_io, NULL);
+
+	return l_test_run();
 }
