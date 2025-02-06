@@ -579,20 +579,10 @@ static const struct test_data test_data_4[] = {
 	{ }
 };
 
-int main(int argc, char *argv[])
+static void test_dir_watch(const void *data)
 {
-	int opt, exit_status;
-
 	l_main_init();
 	l_log_set_stderr();
-
-	while ((opt = getopt(argc, argv, "d")) != -1) {
-		switch (opt) {
-		case 'd':
-			l_debug_enable("*");
-			break;
-		}
-	}
 
 	test_queue = l_queue_new();
 	add_test("Single directory test", test_data_1);
@@ -601,10 +591,17 @@ int main(int argc, char *argv[])
 	add_test("Replace existing file", test_data_4);
 
 	l_idle_oneshot(process_test_queue, NULL, NULL);
-	exit_status = l_main_run();
+	l_main_run();
 
 	l_queue_destroy(test_queue, free_test_entry);
 	l_main_exit();
+}
 
-	return exit_status;
+int main(int argc, char *argv[])
+{
+	l_test_init(&argc, &argv);
+
+	l_test_add("dir-watch", test_dir_watch, NULL);
+
+	return l_test_run();
 }
