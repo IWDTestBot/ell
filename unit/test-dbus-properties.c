@@ -971,13 +971,13 @@ static void test_run(void)
 	l_main_run_with_signal(signal_handler, NULL);
 }
 
-int main(int argc, char *argv[])
+static void test_dbus_properties(const void *data)
 {
 	struct l_signal *sigchld;
 	int i;
 
 	if (!l_main_init())
-		return -1;
+		return;
 
 	test_add("Legacy properties get", test_old_get, NULL);
 	test_add("Legacy properties set", test_old_set, NULL);
@@ -995,7 +995,7 @@ int main(int argc, char *argv[])
 	l_log_set_stderr();
 
 	if (!start_dbus_daemon())
-		return -1;
+		return;
 
 	for (i = 0; i < 10; i++) {
 		usleep(200 * 1000);
@@ -1023,6 +1023,13 @@ done:
 
 	if (!success)
 		abort();
+}
 
-	return 0;
+int main(int argc, char *argv[])
+{
+	l_test_init(&argc, &argv);
+
+	l_test_add("dbus-properties", test_dbus_properties, NULL);
+
+	return l_test_run();
 }
