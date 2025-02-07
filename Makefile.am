@@ -414,6 +414,9 @@ tools_gpio_LDADD = ell/libell-private.la
 EXTRA_DIST = ell/ell.sym \
 		$(unit_test_data_files) unit/gencerts.cnf unit/plaintext.txt
 
+LOG_DRIVER = env AM_TAP_AWK='$(AWK)' $(SHELL) \
+			$(top_srcdir)/build-aux/tap-driver.sh
+
 TESTS =
 
 if TESTS
