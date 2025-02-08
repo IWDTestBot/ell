@@ -1028,6 +1028,7 @@ done:
 int main(int argc, char *argv[])
 {
 	l_test_init(&argc, &argv);
+	l_test_set_uses_own_main();
 
 	l_test_add("dbus-properties", test_dbus_properties, NULL);
 

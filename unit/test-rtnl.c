@@ -515,6 +515,7 @@ int main(int argc, char *argv[])
 
 	/* Run the the tests not requiring the main event loop first */
 	l_test_init(&argc, &argv);
+	l_test_set_uses_own_main();
 	l_test_add("route", test_route, NULL);
 	l_test_add("address", test_address, NULL);
 	l_test_run();

@@ -104,6 +104,7 @@ static void test_netlink(const void *data)
 int main(int argc, char *argv[])
 {
 	l_test_init(&argc, &argv);
+	l_test_set_uses_own_main();
 
 	l_test_add("netlink", test_netlink, NULL);
 

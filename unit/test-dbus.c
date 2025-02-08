@@ -269,6 +269,7 @@ int main(int argc, char *argv[])
 	struct l_signal *sigchld;
 
 	l_test_init(&argc, &argv);
+	l_test_set_uses_own_main();
 
 	l_test_add("Using a unix socket", test_dbus, TEST_BUS_ADDRESS_UNIX);
 	l_test_add("Using a tcp socket", test_dbus, TEST_BUS_ADDRESS_TCP);
