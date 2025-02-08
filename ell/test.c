@@ -105,14 +105,9 @@ LIB_EXPORT void l_test_init(int *argc, char ***argv)
 		l_debug_enable("*");
 }
 
-static int run_all_tests(void)
+static void run_all_tests(void)
 {
 	struct test *test = test_head;
-
-	if (tap_enable) {
-		printf("TAP version 12\n");
-		printf("1..%u\n", test_count);
-	}
 
 	while (test) {
 		struct test *tmp = test;
@@ -135,29 +130,40 @@ static int run_all_tests(void)
 	test_head = NULL;
 	test_tail = NULL;
 	test_count = 0;
-
-	return 0;
 }
 
-static void main_ready(void *user_data)
+static void run_next_test(void *user_data)
 {
 	pid_t pid;
+
+	if (!test_head) {
+		l_main_quit();
+		return;
+	}
+
+	if (!tap_enable)
+		printf("TEST: %s\n", test_head->name);
 
 	pid = fork();
 	if (pid < 0) {
 		perror("Failed to fork new process");
+		l_main_quit();
 		return;
 	}
 
 	if (pid == 0) {
-		int exit_status;
-
 		prctl(PR_SET_PDEATHSIG, SIGTERM);
+		prctl(PR_SET_DUMPABLE, 0L);
 
-		exit_status = run_all_tests();
+		/* Close stdout to not interfere with TAP */
+		close(STDOUT_FILENO);
 
-		exit(exit_status);
+		test_head->function(test_head->test_data);
+		exit(EXIT_SUCCESS);
 	}
+
+	if (tap_enable && debug_enable)
+		printf("# %d started\n", pid);
 
 	test_pid = pid;
 }
@@ -169,7 +175,7 @@ static void signal_handler(uint32_t signo, void *user_data)
 	case SIGTERM:
 		l_info("Terminate");
 		if (test_pid > 0) {
-			l_info("Kill test child %d", test_pid);
+			l_info("Terminate test %d", test_pid);
 			kill(SIGTERM, test_pid);
 		}
 		break;
@@ -180,18 +186,45 @@ static void sigchld_handler(void *user_data)
 {
 	while (1) {
 		pid_t pid;
-		int status;
+		int wstatus;
+		bool terminated = false;
+		bool success;
 
-		pid = waitpid(WAIT_ANY, &status, WNOHANG);
+		pid = waitpid(WAIT_ANY, &wstatus, WNOHANG);
 		if (pid < 0 || pid == 0)
 			break;
 
-		l_info("process %d terminated with status=%d\n", pid, status);
+		if (WIFEXITED(wstatus)) {
+			if (tap_enable && debug_enable)
+				printf("# %d exited with status %d\n",
+						pid, WEXITSTATUS(wstatus));
+			terminated = true;
+			success = !WEXITSTATUS(wstatus);
+		} else if (WIFSIGNALED(wstatus)) {
+			if (tap_enable && debug_enable)
+				printf("# %d terminated with signal %d\n",
+						pid, WTERMSIG(wstatus));
+			terminated = true;
+			success = false;
+		}
 
-		if (pid == test_pid) {
-			printf("test exit\n");
+		if (terminated && pid == test_pid) {
+			struct test *test = test_head;
+
 			test_pid = -1;
-			l_main_quit();
+
+			if (tap_enable)
+				printf("%sok %u - %s\n",
+						success ? "" : "not ",
+						test->num, test->name);
+
+			test_head = test->next;
+			free(test);
+
+			if (!test_head)
+				test_tail = NULL;
+
+			l_idle_oneshot(run_next_test, NULL, NULL);
 		}
 	}
 }
@@ -208,14 +241,21 @@ LIB_EXPORT int l_test_run(void)
 	struct l_signal *sigchld;
 	int exit_status;
 
-	if (uses_own_main)
-		return run_all_tests();
+	if (tap_enable) {
+		printf("TAP version 12\n");
+		printf("1..%u\n", test_count);
+	}
+
+	if (cmd_list || uses_own_main) {
+		run_all_tests();
+		return EXIT_SUCCESS;
+	}
 
 	l_main_init();
 
 	sigchld = l_signal_create(SIGCHLD, sigchld_handler, NULL, NULL);
 
-	l_idle_oneshot(main_ready, NULL, NULL);
+	l_idle_oneshot(run_next_test, NULL, NULL);
 
 	exit_status = l_main_run_with_signal(signal_handler, NULL);
 
