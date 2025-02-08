@@ -10,11 +10,20 @@
 #endif
 
 #include <stdio.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
 #include <getopt.h>
+#include <signal.h>
+#include <sys/wait.h>
+#include <sys/prctl.h>
 
 #include "log.h"
+#include "main.h"
+#include "idle.h"
+#include "signal.h"
 #include "test.h"
 #include "private.h"
 #include "useful.h"
@@ -42,6 +51,8 @@ static bool uses_own_main = false;
 static bool cmd_list;
 static bool tap_enable;
 static bool debug_enable;
+
+static pid_t test_pid = -1;
 
 /**
  * l_test_init:
@@ -89,16 +100,12 @@ LIB_EXPORT void l_test_init(int *argc, char ***argv)
 			break;
 		}
 	}
+
+	if (debug_enable)
+		l_debug_enable("*");
 }
 
-/**
- * l_test_run:
- *
- * Run all configured tests.
- *
- * Returns: 0 on success
- **/
-LIB_EXPORT int l_test_run(void)
+static int run_all_tests(void)
 {
 	struct test *test = test_head;
 
@@ -106,9 +113,6 @@ LIB_EXPORT int l_test_run(void)
 		printf("TAP version 12\n");
 		printf("1..%u\n", test_count);
 	}
-
-	if (debug_enable)
-		l_debug_enable("*");
 
 	while (test) {
 		struct test *tmp = test;
@@ -133,6 +137,93 @@ LIB_EXPORT int l_test_run(void)
 	test_count = 0;
 
 	return 0;
+}
+
+static void main_ready(void *user_data)
+{
+	pid_t pid;
+
+	pid = fork();
+	if (pid < 0) {
+		perror("Failed to fork new process");
+		return;
+	}
+
+	if (pid == 0) {
+		int exit_status;
+
+		prctl(PR_SET_PDEATHSIG, SIGTERM);
+
+		exit_status = run_all_tests();
+
+		exit(exit_status);
+	}
+
+	test_pid = pid;
+}
+
+static void signal_handler(uint32_t signo, void *user_data)
+{
+	switch (signo) {
+	case SIGINT:
+	case SIGTERM:
+		l_info("Terminate");
+		if (test_pid > 0) {
+			l_info("Kill test child %d", test_pid);
+			kill(SIGTERM, test_pid);
+		}
+		break;
+	}
+}
+
+static void sigchld_handler(void *user_data)
+{
+	while (1) {
+		pid_t pid;
+		int status;
+
+		pid = waitpid(WAIT_ANY, &status, WNOHANG);
+		if (pid < 0 || pid == 0)
+			break;
+
+		l_info("process %d terminated with status=%d\n", pid, status);
+
+		if (pid == test_pid) {
+			printf("test exit\n");
+			test_pid = -1;
+			l_main_quit();
+		}
+	}
+}
+
+/**
+ * l_test_run:
+ *
+ * Run all configured tests.
+ *
+ * Returns: 0 on success
+ **/
+LIB_EXPORT int l_test_run(void)
+{
+	struct l_signal *sigchld;
+	int exit_status;
+
+	if (uses_own_main)
+		return run_all_tests();
+
+	l_main_init();
+
+	sigchld = l_signal_create(SIGCHLD, sigchld_handler, NULL, NULL);
+
+	l_idle_oneshot(main_ready, NULL, NULL);
+
+	exit_status = l_main_run_with_signal(signal_handler, NULL);
+
+	l_signal_remove(sigchld);
+
+	l_main_exit();
+
+	return exit_status;
 }
 
 /**
