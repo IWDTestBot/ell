@@ -34,6 +34,7 @@ global:
 	l_test_init;
 	l_test_run;
 	l_test_add;
+	l_test_set_uses_own_main;
 	/* strv */
 	l_strfreev;
 	l_strsplit;

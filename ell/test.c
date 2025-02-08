@@ -37,6 +37,7 @@ struct test {
 static struct test *test_head;
 static struct test *test_tail;
 static unsigned int test_count;
+static bool uses_own_main = false;
 
 static bool cmd_list;
 static bool tap_enable;
@@ -169,4 +170,14 @@ LIB_EXPORT void l_test_add(const char *name, l_test_func_t function,
 		test_head = test;
 
 	test->num = ++test_count;
+}
+
+/**
+ * l_test_set_uses_own_main:
+ *
+ * Set state for tests using their own main loop.
+ **/
+LIB_EXPORT void l_test_set_uses_own_main(void)
+{
+	uses_own_main = true;
 }
