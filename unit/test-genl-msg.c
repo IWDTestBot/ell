@@ -493,41 +493,38 @@ static void test_append_attrv(const void *data)
 
 int main(int argc, char *argv[])
 {
-	bool little_endian;
-
-#if __BYTE_ORDER == __LITTLE_ENDIAN
-	little_endian = true;
-#elif __BYTE_ORDER == __BIG_ENDIAN
-	little_endian = false;
-#else
-#error "Unknown byte order"
-#endif
-
 	l_test_init(&argc, &argv);
 
-	if (!little_endian)
-		goto done;
+	l_test_add_data_func("Parse Set Station Request",
+				&set_station, parse_set_station,
+				L_TEST_FLAG_LITTLE_ENDIAN_ONLY);
+	l_test_add_data_func("Parse Set Rekey Offload Request",
+				&rekey_offload, parse_set_rekey_offload,
+				L_TEST_FLAG_LITTLE_ENDIAN_ONLY);
 
-	l_test_add("Parse Set Station Request", parse_set_station, &set_station);
-	l_test_add("Parse Set Rekey Offload Request",
-				parse_set_rekey_offload, &rekey_offload);
+	l_test_add_data_func("Build Set Station Request",
+				&set_station, build_set_station,
+				L_TEST_FLAG_LITTLE_ENDIAN_ONLY);
+	l_test_add_data_func("Build Set Station Request (Netlink)",
+				&set_station, build_set_station_netlink,
+				L_TEST_FLAG_LITTLE_ENDIAN_ONLY);
+	l_test_add_data_func("Build Set Rekey Offload Request",
+				&rekey_offload, build_set_rekey_offload,
+				L_TEST_FLAG_LITTLE_ENDIAN_ONLY);
+	l_test_add_data_func("Build Set Rekey Offload Request (Netlink)",
+				&rekey_offload, build_set_rekey_offload_netlink,
+				L_TEST_FLAG_LITTLE_ENDIAN_ONLY);
 
-	l_test_add("Build Set Station Request", build_set_station, &set_station);
-	l_test_add("Build Set Station Request (Netlink)",
-			build_set_station_netlink, &set_station);
-	l_test_add("Build Set Rekey Offload Request",
-				build_set_rekey_offload, &rekey_offload);
-	l_test_add("Build Set Rekey Offload Request (Netlink)",
-			build_set_rekey_offload_netlink, &rekey_offload);
+	l_test_add_func("libnl-generated Example with Nesting",
+					parse_libnl_nested,
+					L_TEST_FLAG_LITTLE_ENDIAN_ONLY);
+	l_test_add_func("Build libnl-generated Example with Nesting",
+					build_libnl_nested,
+					L_TEST_FLAG_LITTLE_ENDIAN_ONLY);
 
-	l_test_add("libnl-generated Example with Nesting",
-				parse_libnl_nested, NULL);
-	l_test_add("Build libnl-generated Example with Nesting",
-				build_libnl_nested, NULL);
+	l_test_add_func("Test l_genl_msg_append_attrv",
+					test_append_attrv,
+					L_TEST_FLAG_LITTLE_ENDIAN_ONLY);
 
-	l_test_add("Test l_genl_msg_append_attrv",
-				test_append_attrv, NULL);
-
-done:
 	return l_test_run();
 }
