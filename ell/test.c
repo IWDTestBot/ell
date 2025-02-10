@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <getopt.h>
+#include <assert.h>
 #include <poll.h>
 #include <signal.h>
 #include <sys/signalfd.h>
@@ -23,6 +24,9 @@
 #include <sys/prctl.h>
 
 #include "log.h"
+#include "main.h"
+#include "idle.h"
+#include "test-private.h"
 #include "test.h"
 #include "private.h"
 #include "useful.h"
@@ -40,11 +44,14 @@
 
 struct test {
 	const char *name;
-	const void *test_data;
+	const void *data;
 	l_test_func_t function;
 	unsigned long flags;
 	unsigned int num;
 	struct test *next;
+	/* internal execution variables */
+	bool use_main;
+	const char *dbus_address;
 };
 
 static struct test *test_head;
@@ -141,6 +148,70 @@ static void print_result(struct test *test, bool success)
 				failure_expected ? " # SKIP" : "");
 }
 
+static void test_setup(struct test *test)
+{
+	int err;
+
+	test->use_main = false;
+
+	if (test->flags & L_TEST_FLAG_REQUIRE_DBUS_SYSTEM_BUS) {
+		test->use_main = true;
+		test->dbus_address = "unix:path=/tmp/ell-test-system-bus";
+
+		err = setenv("DBUS_SYSTEM_BUS_ADDRESS", test->dbus_address, 1);
+		assert(err == 0);
+	}
+
+	if (test->flags & L_TEST_FLAG_REQUIRE_DBUS_SESSION_BUS) {
+		test->use_main = true;
+		test->dbus_address = "unix:path=/tmp/ell-test-session-bus";
+
+		err = setenv("DBUS_SESSION_BUS_ADDRESS", test->dbus_address, 1);
+		assert(err == 0);
+	}
+
+	if (test->use_main) {
+		bool result = l_main_init();
+		assert(result);
+	}
+}
+
+static void dbus_ready(void *user_data)
+{
+	struct test *test = user_data;
+
+	test->function(test->data);
+}
+
+static void main_ready(void *user_data)
+{
+	struct test *test = user_data;
+
+	start_dbus(test->dbus_address, dbus_ready, test, debug_enable);
+}
+
+static void test_function(struct test *test)
+{
+	if (test->use_main) {
+		int exit_status;
+
+		l_idle_oneshot(main_ready, test, NULL);
+
+		exit_status = l_main_run();
+		assert(exit_status == EXIT_SUCCESS);
+	} else {
+		dbus_ready(test);
+	}
+}
+
+static void test_teardown(struct test *test)
+{
+	if (test->use_main) {
+		bool result = l_main_exit();
+		assert(result);
+	}
+}
+
 static void run_next_test(void *user_data)
 {
 	pid_t pid;
@@ -170,7 +241,10 @@ static void run_next_test(void *user_data)
 		/* Close stdout to not interfere with TAP */
 		close(STDOUT_FILENO);
 
-		test_head->function(test_head->test_data);
+		test_setup(test_head);
+		test_function(test_head);
+		test_teardown(test_head);
+
 		exit(EXIT_SUCCESS);
 	}
 
@@ -363,7 +437,7 @@ LIB_EXPORT void l_test_add_data_func(const char *name, const void *data,
 
 	memset(test, 0, sizeof(struct test));
 	test->name = name;
-	test->test_data = data;
+	test->data = data;
 	test->function = function;
 	test->flags = flags;
 	test->num = ++test_count;
