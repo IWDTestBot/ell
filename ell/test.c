@@ -16,16 +16,20 @@
 #include <stdlib.h>
 #include <string.h>
 #include <getopt.h>
+#include <poll.h>
 #include <signal.h>
 #include <sys/signalfd.h>
 #include <sys/wait.h>
-#include <sys/poll.h>
 #include <sys/prctl.h>
 
 #include "log.h"
 #include "test.h"
 #include "private.h"
 #include "useful.h"
+
+#ifndef WAIT_ANY
+#define WAIT_ANY (-1) /* Any process */
+#endif
 
 /**
  * SECTION:test
