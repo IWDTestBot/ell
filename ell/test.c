@@ -143,12 +143,18 @@ static void print_result(struct test *test, bool success)
 {
 	bool failure_expected = test->flags & L_TEST_FLAG_FAILURE_EXPECTED;
 	bool allow_failure = test->flags & L_TEST_FLAG_ALLOW_FAILURE;
+	bool little_endian = test->flags & L_TEST_FLAG_LITTLE_ENDIAN_ONLY;
 	bool mark_skip = false;
 
 	if (failure_expected && !success)
 		success = true;
 
 	if (allow_failure && !success) {
+		success = true;
+		mark_skip = true;
+	}
+
+	if (little_endian && !success) {
 		success = true;
 		mark_skip = true;
 	}
@@ -221,6 +227,21 @@ static void test_sigchld(void *user_data)
 static void dbus_ready(void *user_data)
 {
 	struct test *test = user_data;
+	bool little_endian;
+
+#if __BYTE_ORDER == __LITTLE_ENDIAN
+	little_endian = true;
+#elif __BYTE_ORDER == __BIG_ENDIAN
+	little_endian = false;
+#else
+#error "Unknown byte order"
+#endif
+
+	if ((test->flags & L_TEST_FLAG_LITTLE_ENDIAN_ONLY) && !little_endian) {
+		/* Fail the test case and change the error to SKIP */
+		abort();
+		return;
+	}
 
 	test->function(test->data);
 }
