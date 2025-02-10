@@ -40,10 +40,11 @@
 
 struct test {
 	const char *name;
-	l_test_func_t function;
 	const void *test_data;
-	struct test *next;
+	l_test_func_t function;
+	unsigned long flags;
 	unsigned int num;
+	struct test *next;
 };
 
 static struct test *test_head;
@@ -126,6 +127,18 @@ static void show_tests(void)
 	test_head = NULL;
 	test_tail = NULL;
 	test_count = 0;
+}
+
+static void print_result(struct test *test, bool success)
+{
+	bool failure_expected = test->flags & L_TEST_FLAG_FAILURE_EXPECTED;
+
+	if (failure_expected && !success)
+		success = true;
+
+	printf("%sok %u - %s%s\n", success ? "" : "not ",
+				test->num, test->name,
+				failure_expected ? " # SKIP" : "");
 }
 
 static void run_next_test(void *user_data)
@@ -213,9 +226,7 @@ static void sigchld_handler(void *user_data)
 			test_pid = -1;
 
 			if (tap_enable)
-				printf("%sok %u - %s\n",
-						success ? "" : "not ",
-						test->num, test->name);
+				print_result(test, success);
 
 			test_head = test->next;
 			free(test);
@@ -315,15 +326,31 @@ LIB_EXPORT int l_test_run(void)
 }
 
 /**
- * l_test_add:
+ * l_test_add_data_func:
  * @name: test name
  * @function: test function
- * @test_data: test data
+ * @flags: test flags;
  *
  * Add new test.
  **/
-LIB_EXPORT void l_test_add(const char *name, l_test_func_t function,
-						const void *test_data)
+LIB_EXPORT void l_test_add_func(const char *name, l_test_func_t function,
+							unsigned long flags)
+{
+	l_test_add_data_func(name, NULL, function, flags);
+}
+
+/**
+ * l_test_add_data_func:
+ * @name: test name
+ * @function: test function
+ * @data: test data
+ * @flags: test flags;
+ *
+ * Add new test.
+ **/
+LIB_EXPORT void l_test_add_data_func(const char *name, const void *data,
+							l_test_func_t function,
+							unsigned long flags)
 {
 	struct test *test;
 
@@ -336,8 +363,10 @@ LIB_EXPORT void l_test_add(const char *name, l_test_func_t function,
 
 	memset(test, 0, sizeof(struct test));
 	test->name = name;
+	test->test_data = data;
 	test->function = function;
-	test->test_data = test_data;
+	test->flags = flags;
+	test->num = ++test_count;
 	test->next = NULL;
 
 	if (test_tail)
@@ -347,6 +376,18 @@ LIB_EXPORT void l_test_add(const char *name, l_test_func_t function,
 
 	if (!test_head)
 		test_head = test;
+}
 
-	test->num = ++test_count;
+/**
+ * l_test_add:
+ * @name: test name
+ * @function: test function
+ * @data: test data
+ *
+ * Add new test.
+ **/
+LIB_EXPORT void l_test_add(const char *name, l_test_func_t function,
+							const void *data)
+{
+	l_test_add_data_func(name, data, function, 0);
 }

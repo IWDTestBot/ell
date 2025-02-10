@@ -12,14 +12,19 @@
 extern "C" {
 #endif
 
-typedef void (*l_test_func_t) (const void *test_data);
-
 void l_test_init(int *argc, char ***argv);
 int l_test_run(void);
 
-void l_test_add(const char *name, l_test_func_t function,
-					const void *test_data);
+typedef void (*l_test_func_t) (const void *data);
 
+#define L_TEST_FLAG_FAILURE_EXPECTED		(1 << 1)
+
+void l_test_add_func(const char *name, l_test_func_t function,
+						unsigned long flags);
+void l_test_add_data_func(const char *name, const void *data,
+				l_test_func_t function, unsigned long flags);
+
+void l_test_add(const char *name, l_test_func_t function, const void *data);
 
 #ifdef __cplusplus
 }
