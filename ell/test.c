@@ -26,6 +26,7 @@
 #include "log.h"
 #include "main.h"
 #include "idle.h"
+#include "signal.h"
 #include "test-private.h"
 #include "test.h"
 #include "private.h"
@@ -52,6 +53,8 @@ struct test {
 	/* internal execution variables */
 	bool use_main;
 	const char *dbus_address;
+	pid_t dbus_pid;
+	struct l_signal *sigchld;
 };
 
 static struct test *test_head;
@@ -153,6 +156,8 @@ static void test_setup(struct test *test)
 	int err;
 
 	test->use_main = false;
+	test->dbus_address = NULL;
+	test->dbus_pid = -1;
 
 	if (test->flags & L_TEST_FLAG_REQUIRE_DBUS_SYSTEM_BUS) {
 		test->use_main = true;
@@ -176,6 +181,36 @@ static void test_setup(struct test *test)
 	}
 }
 
+static void test_sigchld(void *user_data)
+{
+	struct test *test = user_data;
+
+	while (1) {
+		pid_t pid;
+		int wstatus;
+		bool terminated = false;
+		bool success;
+
+		pid = waitpid(WAIT_ANY, &wstatus, WNOHANG);
+		if (pid < 0 || pid == 0)
+			break;
+
+		if (WIFEXITED(wstatus)) {
+			terminated = true;
+			success = !WEXITSTATUS(wstatus);
+		} else if (WIFSIGNALED(wstatus)) {
+			terminated = true;
+			success = false;
+		}
+
+		if (terminated && pid == test->dbus_pid) {
+			l_info("D-Bus %s", success ? "terminated" : "failed");
+			assert(success);
+			l_main_quit();
+		}
+	}
+}
+
 static void dbus_ready(void *user_data)
 {
 	struct test *test = user_data;
@@ -187,7 +222,16 @@ static void main_ready(void *user_data)
 {
 	struct test *test = user_data;
 
-	start_dbus(test->dbus_address, dbus_ready, test, debug_enable);
+	if (test->dbus_address) {
+		test->sigchld = l_signal_create(SIGCHLD,
+						test_sigchld, test, NULL);
+
+		test->dbus_pid = start_dbus(test->dbus_address,
+						dbus_ready, test, debug_enable);
+		assert(test->dbus_pid > 0);
+	} else {
+		dbus_ready(test);
+	}
 }
 
 static void test_function(struct test *test)
@@ -209,6 +253,11 @@ static void test_teardown(struct test *test)
 	if (test->use_main) {
 		bool result = l_main_exit();
 		assert(result);
+
+		if (test->dbus_pid > 0)
+			kill(test->dbus_pid, SIGKILL);
+
+		l_signal_remove(test->sigchld);
 	}
 }
 
