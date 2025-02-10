@@ -9,27 +9,39 @@
 #include <config.h>
 #endif
 
+#include <assert.h>
+
 #include <ell/ell.h>
 
-static void example_1(const void *data)
+static void test_add(const void *data)
 {
+	assert(1);
 }
 
-static void example_2(const void *data)
+static void test_add_func(const void *data)
 {
+	assert(1);
 }
 
-static void example_3(const void *data)
+static void test_add_data_func(const void *data)
 {
+	assert(1);
+}
+
+static void test_add_func_fail(const void *data)
+{
+	assert(0);
 }
 
 int main(int argc, char *argv[])
 {
 	l_test_init(&argc, &argv);
 
-	l_test_add("example-1", example_1, NULL);
-	l_test_add("example-2", example_2, NULL);
-	l_test_add("example-3", example_3, NULL);
+	l_test_add("add", test_add, NULL);
+	l_test_add_func("add-func", test_add_func, 0);
+	l_test_add_data_func("add-data-func", NULL, test_add_data_func, 0);
+	l_test_add_func("add-func-fail", test_add_func_fail,
+						L_TEST_FLAG_FAILURE_EXPECTED);
 
 	return l_test_run();
 }
