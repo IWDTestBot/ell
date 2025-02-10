@@ -188,7 +188,7 @@ static void signal_handler(uint32_t signo, void *user_data)
 		l_info("Terminate");
 		if (test_pid > 0) {
 			l_info("Terminate test %d", test_pid);
-			kill(SIGTERM, test_pid);
+			kill(test_pid, SIGKILL);
 		}
 		break;
 	}
