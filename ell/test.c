@@ -142,13 +142,20 @@ static void show_tests(void)
 static void print_result(struct test *test, bool success)
 {
 	bool failure_expected = test->flags & L_TEST_FLAG_FAILURE_EXPECTED;
+	bool allow_failure = test->flags & L_TEST_FLAG_ALLOW_FAILURE;
+	bool mark_skip = false;
 
 	if (failure_expected && !success)
 		success = true;
 
+	if (allow_failure && !success) {
+		success = true;
+		mark_skip = true;
+	}
+
 	printf("%sok %u - %s%s\n", success ? "" : "not ",
-				test->num, test->name,
-				failure_expected ? " # SKIP" : "");
+					test->num, test->name,
+					mark_skip ? " # SKIP" : "");
 }
 
 static void test_setup(struct test *test)
