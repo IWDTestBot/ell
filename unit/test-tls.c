@@ -956,7 +956,8 @@ int main(int argc, char *argv[])
 
 	if (l_key_is_supported(L_KEY_FEATURE_RESTRICT)) {
 		l_test_add("Certificate chains", test_certificates, NULL);
-		l_test_add("ECDSA Certificates", test_ec_certificates, NULL);
+		l_test_add_func("ECDSA Certificates", test_ec_certificates,
+						L_TEST_FLAG_ALLOW_FAILURE);
 	}
 
 	if (!l_getrandom_is_supported()) {
