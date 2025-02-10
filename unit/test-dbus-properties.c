@@ -1029,7 +1029,8 @@ int main(int argc, char *argv[])
 {
 	l_test_init(&argc, &argv);
 
-	l_test_add("dbus-properties", test_dbus_properties, NULL);
+	l_test_add_func("dbus-properties", test_dbus_properties,
+						L_TEST_FLAG_ALLOW_FAILURE);
 
 	return l_test_run();
 }

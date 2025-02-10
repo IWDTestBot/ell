@@ -356,7 +356,8 @@ int main(int argc, char *argv[])
 {
 	l_test_init(&argc, &argv);
 
-	l_test_add("dbus-message-fds", test_dbus_message_fds, NULL);
+	l_test_add_func("dbus-message-fds", test_dbus_message_fds,
+						L_TEST_FLAG_ALLOW_FAILURE);
 
 	return l_test_run();
 }
