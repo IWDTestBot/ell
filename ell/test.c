@@ -47,7 +47,6 @@ static struct test *test_tail;
 static unsigned int test_count;
 static bool testing_active;
 static int signal_fd;
-static bool uses_own_main = false;
 
 static bool cmd_list;
 static bool tap_enable;
@@ -91,7 +90,6 @@ LIB_EXPORT void l_test_init(int *argc, char ***argv)
 		switch (opt) {
 		case 'l':
 			cmd_list = true;
-			tap_enable = false;
 			break;
 		case 't':
 			tap_enable = false;
@@ -106,21 +104,14 @@ LIB_EXPORT void l_test_init(int *argc, char ***argv)
 		l_debug_enable("*");
 }
 
-static void run_all_tests(void)
+static void show_tests(void)
 {
 	struct test *test = test_head;
 
 	while (test) {
 		struct test *tmp = test;
 
-		if (!tap_enable)
-			printf("TEST: %s\n", test->name);
-
-		if (!cmd_list) {
-			test->function(test->test_data);
-			if (tap_enable)
-				printf("ok %u - %s\n", test->num, test->name);
-		}
+		printf("TEST: %s\n", test->name);
 
 		test = test->next;
 		test_head = test;
@@ -245,14 +236,14 @@ LIB_EXPORT int l_test_run(void)
 	sigset_t sig_mask, old_mask;
 	int exit_status;
 
+	if (cmd_list) {
+		show_tests();
+		return EXIT_SUCCESS;
+	}
+
 	if (tap_enable) {
 		printf("TAP version 12\n");
 		printf("1..%u\n", test_count);
-	}
-
-	if (cmd_list || uses_own_main) {
-		run_all_tests();
-		return EXIT_SUCCESS;
 	}
 
 	sigemptyset(&sig_mask);
