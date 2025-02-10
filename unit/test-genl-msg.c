@@ -523,8 +523,7 @@ int main(int argc, char *argv[])
 					L_TEST_FLAG_LITTLE_ENDIAN_ONLY);
 
 	l_test_add_func("Test l_genl_msg_append_attrv",
-					test_append_attrv,
-					L_TEST_FLAG_LITTLE_ENDIAN_ONLY);
+					test_append_attrv, 0);
 
 	return l_test_run();
 }
