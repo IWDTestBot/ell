@@ -93,7 +93,6 @@ static void test_io(const void *data)
 int main(int argc, char *argv[])
 {
 	l_test_init(&argc, &argv);
-	l_test_set_uses_own_main();
 
 	l_test_add("io", test_io, NULL);
 
