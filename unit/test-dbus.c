@@ -25,7 +25,6 @@
 
 static pid_t dbus_daemon_pid = -1;
 
-static int tests_completed = 0;
 static bool bus_became_ready = false;
 static bool match_cb_called = false;
 static bool req_name_cb_called = false;
@@ -261,7 +260,6 @@ static void test_dbus(const void *data)
 
 	l_dbus_destroy(dbus);
 	l_main_exit();
-	tests_completed++;
 }
 
 int main(int argc, char *argv[])
@@ -277,7 +275,7 @@ int main(int argc, char *argv[])
 	sigchld = l_signal_create(SIGCHLD, sigchld_handler, NULL, NULL);
 
 	if (!start_dbus_daemon())
-		return -1;
+		return 1;
 
 	l_test_run();
 
@@ -286,8 +284,5 @@ int main(int argc, char *argv[])
 
 	l_signal_remove(sigchld);
 
-	if (tests_completed == 2)
-		return 0;
-
-	return -1;
+	return 0;
 }
