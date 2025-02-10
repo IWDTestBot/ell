@@ -17,13 +17,12 @@
 #include <string.h>
 #include <getopt.h>
 #include <signal.h>
+#include <sys/signalfd.h>
 #include <sys/wait.h>
+#include <sys/poll.h>
 #include <sys/prctl.h>
 
 #include "log.h"
-#include "main.h"
-#include "idle.h"
-#include "signal.h"
 #include "test.h"
 #include "private.h"
 #include "useful.h"
@@ -46,6 +45,8 @@ struct test {
 static struct test *test_head;
 static struct test *test_tail;
 static unsigned int test_count;
+static bool testing_active;
+static int signal_fd;
 static bool uses_own_main = false;
 
 static bool cmd_list;
@@ -137,7 +138,7 @@ static void run_next_test(void *user_data)
 	pid_t pid;
 
 	if (!test_head) {
-		l_main_quit();
+		testing_active = false;
 		return;
 	}
 
@@ -147,13 +148,16 @@ static void run_next_test(void *user_data)
 	pid = fork();
 	if (pid < 0) {
 		perror("Failed to fork new process");
-		l_main_quit();
+		testing_active = false;
 		return;
 	}
 
 	if (pid == 0) {
 		prctl(PR_SET_PDEATHSIG, SIGTERM);
 		prctl(PR_SET_DUMPABLE, 0L);
+
+		/* Don't keep the signalfd in the child process */
+		close(signal_fd);
 
 		/* Close stdout to not interfere with TAP */
 		close(STDOUT_FILENO);
@@ -224,7 +228,7 @@ static void sigchld_handler(void *user_data)
 			if (!test_head)
 				test_tail = NULL;
 
-			l_idle_oneshot(run_next_test, NULL, NULL);
+			run_next_test(NULL);
 		}
 	}
 }
@@ -238,7 +242,7 @@ static void sigchld_handler(void *user_data)
  **/
 LIB_EXPORT int l_test_run(void)
 {
-	struct l_signal *sigchld;
+	sigset_t sig_mask, old_mask;
 	int exit_status;
 
 	if (tap_enable) {
@@ -251,17 +255,66 @@ LIB_EXPORT int l_test_run(void)
 		return EXIT_SUCCESS;
 	}
 
-	l_main_init();
+	sigemptyset(&sig_mask);
+	sigaddset(&sig_mask, SIGINT);
+	sigaddset(&sig_mask, SIGTERM);
+	sigaddset(&sig_mask, SIGCHLD);
 
-	sigchld = l_signal_create(SIGCHLD, sigchld_handler, NULL, NULL);
+	/*
+	 * Block signals so that they aren't handled according to their
+	 * default dispositions.
+	 */
+	if (sigprocmask(SIG_BLOCK, &sig_mask, &old_mask) < 0)
+		return EXIT_FAILURE;
 
-	l_idle_oneshot(run_next_test, NULL, NULL);
+	signal_fd = signalfd(-1, &sig_mask, SFD_CLOEXEC);
+	if (signal_fd < 0) {
+		sigprocmask(SIG_SETMASK, &old_mask, NULL);
+		return EXIT_FAILURE;
+	}
 
-	exit_status = l_main_run_with_signal(signal_handler, NULL);
+	exit_status = EXIT_SUCCESS;
+	testing_active = true;
 
-	l_signal_remove(sigchld);
+	run_next_test(NULL);
 
-	l_main_exit();
+	while (testing_active) {
+		struct pollfd fds[1];
+		struct signalfd_siginfo ssi;
+		ssize_t result;
+		int res;
+
+		fds[0].fd = signal_fd;
+		fds[0].events = POLLIN;
+		fds[0].revents = 0;
+
+		res = poll(fds, 1, -1);
+		if (res < 0) {
+			exit_status = EXIT_FAILURE;
+			break;
+		}
+
+		if (res == 0)
+			continue;
+
+		result = read(signal_fd, &ssi, sizeof(ssi));
+		if (result != sizeof(ssi))
+			continue;
+
+		switch (ssi.ssi_signo) {
+		case SIGINT:
+		case SIGTERM:
+			signal_handler(ssi.ssi_signo, NULL);
+			break;
+		case SIGCHLD:
+			sigchld_handler(NULL);
+			break;
+		}
+	}
+
+	close(signal_fd);
+
+	sigprocmask(SIG_SETMASK, &old_mask, NULL);
 
 	return exit_status;
 }
