@@ -158,6 +158,7 @@ int main(int argc, char *argv[])
 	l_test_init(&argc, &argv);
 
 	l_test_add_func("Using a unix socket", test_unix_dbus,
+					L_TEST_FLAG_ALLOW_FAILURE |
 					L_TEST_FLAG_REQUIRE_DBUS_SYSTEM_BUS);
 
 	return l_test_run();

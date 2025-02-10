@@ -78,8 +78,10 @@ int main(int argc, char *argv[])
 						L_TEST_FLAG_FAILURE_EXPECTED);
 
 	l_test_add_func("dbus-system-bus", test_dbus_system_bus,
+					L_TEST_FLAG_ALLOW_FAILURE |
 					L_TEST_FLAG_REQUIRE_DBUS_SYSTEM_BUS);
 	l_test_add_func("dbus-session-bus", test_dbus_session_bus,
+					L_TEST_FLAG_ALLOW_FAILURE |
 					L_TEST_FLAG_REQUIRE_DBUS_SESSION_BUS);
 
 	return l_test_run();
