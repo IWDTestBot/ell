@@ -20,7 +20,6 @@ int l_test_run(void);
 void l_test_add(const char *name, l_test_func_t function,
 					const void *test_data);
 
-void l_test_set_uses_own_main(void);
 
 #ifdef __cplusplus
 }
