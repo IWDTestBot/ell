@@ -51,7 +51,6 @@ struct test_data {
 };
 
 struct test_entry {
-	const char *name;
 	const struct test_data *data;
 	char **test_dirs;
 	char **test_files;
@@ -66,8 +65,6 @@ struct test_watch {
 	char *pathname;
 	struct test_entry *entry;
 };
-
-static struct l_queue *test_queue;
 
 #define TEST_FULL(_dir, _file, _op) \
 			.orig_dir = _dir, .orig_file = _file, .op = _op
@@ -202,7 +199,7 @@ static void free_test_entry(void *data)
 {
 	struct test_entry *entry = data;
 
-	l_debug("free test_entry [%s]", entry->name);
+	l_debug("free test_entry [%p]", entry);
 
 	l_queue_destroy(entry->watch_list, dir_watch_free);
 
@@ -317,23 +314,19 @@ static void op_rename(const char *olddir, const char *oldfile,
 	l_free(newpath);
 }
 
-static void process_test_queue(void *user_data);
-
 static void start_single_test(void *user_data)
 {
 	struct test_entry *entry = user_data;
 	const struct test_data *data = &entry->data[entry->idx];
 	const struct test_result *result = data->results[entry->res_idx];
+	bool failed = entry->failed;
 	bool ignore = false;
 
 	switch (data->op) {
 	case OP_NULL:
-		if (entry->failed)
-			l_info("[%s] FAILED", entry->name);
-		else
-			l_info("[%s] PASSED", entry->name);
 		free_test_entry(entry);
-		l_idle_oneshot(process_test_queue, NULL, NULL);
+		assert(!failed);
+		l_main_quit();
 		return;
 	case OP_OPEN:
 		op_open(data->orig_dir, data->orig_file, data->length);
@@ -376,16 +369,10 @@ static void watch_data_free(void *data)
 	l_free(watch_data);
 }
 
-static void process_test_queue(void *user_data)
+static void process_test_entry(void *user_data)
 {
-	struct test_entry *entry;
+	struct test_entry *entry = user_data;
 	int i;
-
-	entry = l_queue_pop_head(test_queue);
-	if (!entry) {
-		l_main_quit();
-		return;
-	}
 
 	/* In case there is any leftovers */
 	run_cleanup(entry->test_dirs, entry->test_files);
@@ -417,37 +404,39 @@ static void process_test_queue(void *user_data)
 	l_idle_oneshot(start_single_test, entry, NULL);
 }
 
-static void add_test(const char *name, const struct test_data data[])
+static void process_test(const void *data)
 {
+	const struct test_data *test_data = (const struct test_data *) data;
 	struct test_entry *entry;
-	int i;
+	int i, exit_status;
+
+	assert(l_main_init());
+
+	l_log_set_stderr();
 
 	entry = l_new(struct test_entry, 1);
-	entry->name = name;
-	entry->data = data;
+	entry->data = test_data;
 
-	l_debug("new test_entry [%s]", entry->name);
-
-	for (i = 0; data[i].op; i++) {
+	for (i = 0; test_data[i].op; i++) {
 		char *file;
 		int n;
 
-		if (!l_strv_contains(entry->test_dirs, data[i].orig_dir))
+		if (!l_strv_contains(entry->test_dirs, test_data[i].orig_dir))
 			entry->test_dirs = l_strv_append(entry->test_dirs,
-							data[i].orig_dir);
+							test_data[i].orig_dir);
 
-		if (data[i].orig_dir) {
-			file = l_strdup_printf("%s/%s", data[i].orig_dir,
-							data[i].orig_file);
+		if (test_data[i].orig_dir) {
+			file = l_strdup_printf("%s/%s", test_data[i].orig_dir,
+							test_data[i].orig_file);
 			if (!l_strv_contains(entry->test_files, file))
 				entry->test_files = l_strv_append(entry->test_files,
 									file);
 			l_free(file);
 		}
 
-		if (data[i].dest_dir) {
-			file = l_strdup_printf("%s/%s", data[i].dest_dir,
-							data[i].dest_file);
+		if (test_data[i].dest_dir) {
+			file = l_strdup_printf("%s/%s", test_data[i].dest_dir,
+							test_data[i].dest_file);
 			if (!l_strv_contains(entry->test_files, file))
 				entry->test_files = l_strv_append(entry->test_files,
 									file);
@@ -455,13 +444,13 @@ static void add_test(const char *name, const struct test_data data[])
 		}
 
 		for (n = 0; n < MAX_RESULTS; n++) {
-			if (!data[i].results[n])
+			if (!test_data[i].results[n])
 				break;
 			if (l_strv_contains(entry->watch_dirs,
-						data[i].results[n]->dir))
+						test_data[i].results[n]->dir))
 				continue;
 			entry->watch_dirs = l_strv_append(entry->watch_dirs,
-						data[i].results[n]->dir);
+						test_data[i].results[n]->dir);
 		}
 
 	}
@@ -469,7 +458,12 @@ static void add_test(const char *name, const struct test_data data[])
 	entry->watch_list = l_queue_new();
 	entry->failed = false;
 
-	l_queue_push_tail(test_queue, entry);
+	l_idle_oneshot(process_test_entry, entry, NULL);
+
+	exit_status = l_main_run();
+	assert(exit_status == EXIT_SUCCESS);
+
+	assert(l_main_exit());
 }
 
 #define DIR_1	"/tmp/ell-test-dir-1"
@@ -579,29 +573,18 @@ static const struct test_data test_data_4[] = {
 	{ }
 };
 
-static void test_dir_watch(const void *data)
-{
-	l_main_init();
-	l_log_set_stderr();
-
-	test_queue = l_queue_new();
-	add_test("Single directory test", test_data_1);
-	add_test("Move between directories", test_data_2);
-	add_test("Create and open file", test_data_3);
-	add_test("Replace existing file", test_data_4);
-
-	l_idle_oneshot(process_test_queue, NULL, NULL);
-	l_main_run();
-
-	l_queue_destroy(test_queue, free_test_entry);
-	l_main_exit();
-}
-
 int main(int argc, char *argv[])
 {
 	l_test_init(&argc, &argv);
 
-	l_test_add("dir-watch", test_dir_watch, NULL);
+	l_test_add_data_func("Single directory test",
+					test_data_1, process_test, 0);
+	l_test_add_data_func("Move between directories",
+					test_data_2, process_test, 0);
+	l_test_add_data_func("Create and open file",
+					test_data_3, process_test, 0);
+	l_test_add_data_func("Replace existing file",
+					test_data_4, process_test, 0);
 
 	return l_test_run();
 }
