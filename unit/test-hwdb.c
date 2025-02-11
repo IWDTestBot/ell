@@ -28,18 +28,14 @@ static void print_modalias(struct l_hwdb *hwdb, const char *format, ...)
 	vprintf(format, args);
 	va_end(args);
 
-	printf("\n");
-
 	va_start(args, format);
 	entries = l_hwdb_lookup_valist(hwdb, format, args);
 	va_end(args);
 
 	for (entry = entries; entry; entry = entry->next)
-		printf(" %s=%s\n", entry->key, entry->value);
+		fprintf(stderr, " %s=%s\n", entry->key, entry->value);
 
 	l_hwdb_lookup_free(entries);
-
-	printf("\n");
 }
 
 static void check_entry(const char *modalias, struct l_hwdb_entry *entries,
@@ -64,14 +60,11 @@ static void test_hwdb(const void *data)
 	struct hwdb_stats stats = { 0 };
 
 	hwdb = l_hwdb_new_default();
-	if (!hwdb) {
-		printf("hwdb.bin not loaded\n");
-		return;
-	}
+	assert(hwdb);
 
 	l_hwdb_foreach(hwdb, check_entry, &stats);
-	printf("Found %d aliases with %d total entries\n\n",
-	       stats.aliases, stats.entries);
+	fprintf(stderr, "Found %d aliases with %d total entries\n",
+					       stats.aliases, stats.entries);
 
 	/* Bluetooth Interest Group Inc. */
 	print_modalias(hwdb, "OUI:000F79");
