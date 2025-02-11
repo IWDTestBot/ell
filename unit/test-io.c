@@ -11,6 +11,7 @@
 
 #include <fcntl.h>
 #include <unistd.h>
+#include <assert.h>
 #include <sys/socket.h>
 
 #include <ell/ell.h>
@@ -29,6 +30,7 @@ static bool write_handler(struct l_io *io, void *user_data)
 	ssize_t written;
 
 	written = write(fd, str, strlen(str));
+	assert(written > 0);
 
 	l_info("%zd bytes written", written);
 
@@ -42,6 +44,7 @@ static bool read_handler(struct l_io *io, void *user_data)
 	ssize_t result;
 
 	result = read(fd, str, sizeof(str));
+	assert(result > 0);
 
 	l_info("%zd bytes read", result);
 
@@ -59,14 +62,15 @@ static void test_io(const void *data)
 {
 	struct l_io *io1, *io2;
 	int fd[2];
+	int exit_status;
 
-	if (!l_main_init())
-		return;
+	assert(l_main_init());
 
 	l_log_set_stderr();
 
 	if (socketpair(PF_UNIX, SOCK_STREAM | SOCK_NONBLOCK, 0, fd) < 0) {
 		l_error("Failed to create socket pair");
+		abort();
 		return;
 	}
 
@@ -82,12 +86,16 @@ static void test_io(const void *data)
 	l_io_set_write_handler(io2, write_handler, NULL, NULL);
 	l_io_set_disconnect_handler(io2, disconnect_handler, NULL, NULL);
 
-	l_main_run();
+	assert(io1);
+	assert(io2);
+
+	exit_status = l_main_run();
+	assert(exit_status == EXIT_SUCCESS);
 
 	l_io_destroy(io2);
 	l_io_destroy(io1);
 
-	l_main_exit();
+	assert(l_main_exit());
 }
 
 int main(int argc, char *argv[])
