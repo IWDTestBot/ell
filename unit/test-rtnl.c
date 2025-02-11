@@ -308,84 +308,15 @@ static void signal_handler(uint32_t signo, void *user_data)
 	}
 }
 
-static struct l_netlink *rtnl;
-
-struct rtnl_test {
-	const char *name;
-	void (*start)(struct l_netlink *rtnl, void *);
-	void *data;
-};
-
-static bool success;
-static struct l_queue *tests;
-static const struct l_queue_entry *current;
-
-static void test_add(const char *name,
-			void (*start)(struct l_netlink *rtnl, void *),
-			void *user_data)
-{
-	struct rtnl_test *test = l_new(struct rtnl_test, 1);
-
-	test->name = name;
-	test->start = start;
-	test->data = user_data;
-
-	if (!tests)
-		tests = l_queue_new();
-
-	l_queue_push_tail(tests, test);
-}
-
-static void test_next()
-{
-	struct rtnl_test *test;
-
-	if (current)
-		current = current->next;
-	else
-		current = l_queue_get_entries(tests);
-
-	if (!current) {
-		success = true;
-		l_main_quit();
-		return;
-	}
-
-	test = current->data;
-
-	l_info("TEST: %s", test->name);
-
-	test->start(rtnl, test->data);
-}
-
-static void test_next_cb(void * unused)
-{
-	(void)unused;
-	test_next();
-}
-
-#define test_assert(cond)	\
-	do {	\
-		if (!(cond)) {	\
-			l_info("TEST FAILED in %s at %s:%i: %s",	\
-				__func__, __FILE__, __LINE__,	\
-				L_STRINGIFY(cond));	\
-			l_main_quit();	\
-			return;	\
-		}	\
-	} while (0)
-
-
-static void route4_dump_cb(int error,
-			uint16_t type, const void *data,
-			uint32_t len, void *user_data)
+static void route4_dump_cb(int error, uint16_t type, const void *data,
+						uint32_t len, void *user_data)
 {
 	const struct rtmsg *rtmsg = data;
 	char *dst = NULL, *gateway = NULL, *src = NULL;
 	uint32_t table, ifindex;
 
-	test_assert(!error);
-	test_assert(type == RTM_NEWROUTE);
+	assert(!error);
+	assert(type == RTM_NEWROUTE);
 
 	l_rtnl_route4_extract(rtmsg, len, &table, &ifindex,
 				&dst, &gateway, &src);
@@ -396,17 +327,32 @@ static void route4_dump_cb(int error,
 	l_free(dst);
 	l_free(gateway);
 	l_free(src);
+
+	l_main_quit();
 }
 
-static void route4_dump_destroy_cb(void *user_data)
+static void test_route4_dump(const void *data)
 {
-	test_next();
-}
+	struct l_netlink *rtnl;
+	int exit_status;
+	uint32_t id;
 
-static void test_route4_dump(struct l_netlink *rtnl, void *user_data)
-{
-	test_assert(l_rtnl_route4_dump(rtnl, route4_dump_cb,
-					NULL, route4_dump_destroy_cb));
+	assert(l_main_init());
+
+	l_log_set_stderr();
+
+	rtnl = l_netlink_new(NETLINK_ROUTE);
+	assert(rtnl);
+
+	id = l_rtnl_route4_dump(rtnl, route4_dump_cb, NULL, NULL);
+	assert(id);
+
+	exit_status = l_main_run_with_signal(signal_handler, NULL);
+	assert(exit_status == EXIT_SUCCESS);
+
+	l_netlink_destroy(rtnl);
+
+	assert(l_main_exit());
 }
 
 static void route6_dump_cb(int error,
@@ -417,8 +363,8 @@ static void route6_dump_cb(int error,
 	char *dst = NULL, *gateway = NULL, *src = NULL;
 	uint32_t table = 0, ifindex = 0;
 
-	test_assert(!error);
-	test_assert(type == RTM_NEWROUTE);
+	assert(!error);
+	assert(type == RTM_NEWROUTE);
 
 	l_rtnl_route6_extract(rtmsg, len, &table, &ifindex,
 				&dst, &gateway, &src);
@@ -429,28 +375,42 @@ static void route6_dump_cb(int error,
 	l_free(dst);
 	l_free(gateway);
 	l_free(src);
+
+	l_main_quit();
 }
 
-static void route6_dump_destroy_cb(void *user_data)
+static void test_route6_dump(const void *data)
 {
-	test_next();
+	struct l_netlink *rtnl;
+	int exit_status;
+	uint32_t id;
+
+	assert(l_main_init());
+
+	l_log_set_stderr();
+
+	rtnl = l_netlink_new(NETLINK_ROUTE);
+	assert(rtnl);
+
+	id = l_rtnl_route6_dump(rtnl, route6_dump_cb, NULL, NULL);
+	assert(id);
+
+	exit_status = l_main_run_with_signal(signal_handler, NULL);
+	assert(exit_status == EXIT_SUCCESS);
+
+	l_netlink_destroy(rtnl);
+
+	assert(l_main_exit());
 }
 
-static void test_route6_dump(struct l_netlink *rtnl, void *user_data)
-{
-	test_assert(l_rtnl_route6_dump(rtnl, route6_dump_cb,
-					NULL, route6_dump_destroy_cb));
-}
-
-static void ifaddr4_dump_cb(int error,
-				uint16_t type, const void *data,
-				uint32_t len, void *user_data)
+static void ifaddr4_dump_cb(int error, uint16_t type, const void *data,
+						uint32_t len, void *user_data)
 {
 	const struct ifaddrmsg *ifa = data;
 	char *label = NULL, *ip = NULL, *broadcast = NULL;
 
-	test_assert(!error);
-	test_assert(type == RTM_NEWADDR);
+	assert(!error);
+	assert(type == RTM_NEWADDR);
 
 	l_rtnl_ifaddr4_extract(ifa, len, &label, &ip, &broadcast);
 
@@ -459,88 +419,87 @@ static void ifaddr4_dump_cb(int error,
 	l_free(label);
 	l_free(ip);
 	l_free(broadcast);
+
+	l_main_quit();
 }
 
-static void ifaddr4_dump_destroy_cb(void *user_data)
+static void test_ifaddr4_dump(const void *data)
 {
-	test_next();
+	struct l_netlink *rtnl;
+	int exit_status;
+	uint32_t id;
+
+	assert(l_main_init());
+
+	l_log_set_stderr();
+
+	rtnl = l_netlink_new(NETLINK_ROUTE);
+	assert(rtnl);
+
+	id = l_rtnl_ifaddr4_dump(rtnl, ifaddr4_dump_cb, NULL, NULL);
+	assert(id);
+
+	exit_status = l_main_run_with_signal(signal_handler, NULL);
+	assert(exit_status == EXIT_SUCCESS);
+
+	l_netlink_destroy(rtnl);
+
+	assert(l_main_exit());
 }
 
-static void test_ifaddr4_dump(struct l_netlink *rntl, void *user_data)
-{
-	test_assert(l_rtnl_ifaddr4_dump(rtnl, ifaddr4_dump_cb,
-					NULL, ifaddr4_dump_destroy_cb));
-}
-
-static void ifaddr6_dump_cb(int error,
-				uint16_t type, const void *data,
-				uint32_t len, void *user_data)
+static void ifaddr6_dump_cb(int error, uint16_t type, const void *data,
+						uint32_t len, void *user_data)
 {
 	const struct ifaddrmsg *ifa = data;
 	char *ip = NULL;
 
-	test_assert(!error);
-	test_assert(type == RTM_NEWADDR);
+	assert(!error);
+	assert(type == RTM_NEWADDR);
 
 	l_rtnl_ifaddr6_extract(ifa, len, &ip);
 
 	l_info("ip %s", ip);
 
 	l_free(ip);
+
+	l_main_quit();
 }
 
-static void ifaddr6_dump_destroy_cb(void *user_data)
+static void test_ifaddr6_dump(const void *data)
 {
-	test_next();
-}
+	struct l_netlink *rtnl;
+	int exit_status;
+	uint32_t id;
 
-static void test_ifaddr6_dump(struct l_netlink *rntl, void *user_data)
-{
-	test_assert(l_rtnl_ifaddr6_dump(rtnl, ifaddr6_dump_cb,
-					NULL, ifaddr6_dump_destroy_cb));
-}
-
-static void test_run(void)
-{
-	success = false;
-
-	l_idle_oneshot(test_next_cb, NULL, NULL);
-	l_main_run_with_signal(signal_handler, NULL);
-}
-
-int main(int argc, char *argv[])
-{
-	if (!l_main_init())
-		return -1;
-
-	/* Run the the tests not requiring the main event loop first */
-	l_test_init(&argc, &argv);
-	l_test_add("route", test_route, NULL);
-	l_test_add("address", test_address, NULL);
-	l_test_run();
-
-	test_add("Dump IPv4 routing table", test_route4_dump, NULL);
-	test_add("Dump IPv6 routing table", test_route6_dump, NULL);
-	test_add("Dump IPv4 addresses", test_ifaddr4_dump, NULL);
-	test_add("Dump IPv6 addresses", test_ifaddr6_dump, NULL);
+	assert(l_main_init());
 
 	l_log_set_stderr();
 
 	rtnl = l_netlink_new(NETLINK_ROUTE);
-	if (!rtnl)
-		goto done;
+	assert(rtnl);
 
-	test_run();
+	id = l_rtnl_ifaddr6_dump(rtnl, ifaddr6_dump_cb, NULL, NULL);
+	assert(id);
+
+	exit_status = l_main_run_with_signal(signal_handler, NULL);
+	assert(exit_status == EXIT_SUCCESS);
 
 	l_netlink_destroy(rtnl);
 
-done:
-	l_queue_destroy(tests, l_free);
+	assert(l_main_exit());
+}
 
-	l_main_exit();
+int main(int argc, char *argv[])
+{
+	l_test_init(&argc, &argv);
 
-	if (!success)
-		abort();
+	l_test_add("route", test_route, NULL);
+	l_test_add("address", test_address, NULL);
 
-	return 0;
+	l_test_add("Dump IPv4 routing table", test_route4_dump, NULL);
+	l_test_add("Dump IPv6 routing table", test_route6_dump, NULL);
+	l_test_add("Dump IPv4 addresses", test_ifaddr4_dump, NULL);
+	l_test_add("Dump IPv6 addresses", test_ifaddr6_dump, NULL);
+
+	return l_test_run();
 }
