@@ -77,19 +77,25 @@ static void test_main(const void *data)
 	struct l_timeout *race2;
 	struct l_timeout *remove_self;
 	struct l_idle *idle;
+	int exit_status;
 
-	if (!l_main_init())
-		return;
+	assert(l_main_init());
 
 	timeout_quit = l_timeout_create(3, timeout_quit_handler, NULL, NULL);
+	assert(timeout_quit);
 
 	race_delay = l_timeout_create(1, race_delay_handler, NULL, NULL);
 	race1 = l_timeout_create_ms(1100, race_handler, &race2, NULL);
 	race2 = l_timeout_create_ms(1100, race_handler, &race1, NULL);
+	assert(race_delay);
+	assert(race1);
+	assert(race2);
 
 	remove_self = l_timeout_create(2, remove_handler, &remove_self, NULL);
+	assert(remove_self);
 
 	idle = l_idle_create(idle_handler, NULL, NULL);
+	assert(idle);
 
 	l_log_set_stderr();
 
@@ -103,7 +109,8 @@ static void test_main(const void *data)
 
 	l_idle_oneshot(oneshot_handler, NULL, NULL);
 
-	l_main_run_with_signal(signal_handler, NULL);
+	exit_status = l_main_run_with_signal(signal_handler, NULL);
+	assert(exit_status == EXIT_SUCCESS);
 
 	l_timeout_remove(race_delay);
 	l_timeout_remove(race1);
@@ -113,7 +120,7 @@ static void test_main(const void *data)
 
 	l_idle_remove(idle);
 
-	l_main_exit();
+	assert(l_main_exit());
 }
 
 int main(int argc, char *argv[])
