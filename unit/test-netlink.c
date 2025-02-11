@@ -73,32 +73,36 @@ static void test_netlink(const void *data)
 	struct l_netlink_message *nlm =
 			l_netlink_message_new_sized(RTM_GETLINK,
 							NLM_F_DUMP, sizeof(ifi));
-	unsigned int link_id;
+	unsigned int id, link_id;
+	int exit_status;
 
-	if (!l_main_init())
-		return;
+	assert(l_main_init());
 
 	l_log_set_stderr();
 
 	netlink = l_netlink_new(NETLINK_ROUTE);
+	assert(netlink);
 
 	l_netlink_set_debug(netlink, do_debug, "[NETLINK] ", NULL);
 
 	memset(&ifi, 0, sizeof(ifi));
 	l_netlink_message_add_header(nlm, &ifi, sizeof(ifi));
 
-	l_netlink_send(netlink, nlm, getlink_callback, NULL, NULL);
+	id = l_netlink_send(netlink, nlm, getlink_callback, NULL, NULL);
+	assert(id > 0);
 
 	link_id = l_netlink_register(netlink, RTNLGRP_LINK,
 					link_notification, NULL, NULL);
+	assert(link_id > 0);
 
-	l_main_run();
+	exit_status = l_main_run();
+	assert(exit_status == EXIT_SUCCESS);
 
 	assert(l_netlink_unregister(netlink, link_id));
 
 	l_netlink_destroy(netlink);
 
-	l_main_exit();
+	assert(l_main_exit());
 }
 
 int main(int argc, char *argv[])
