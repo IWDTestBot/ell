@@ -214,13 +214,13 @@ unit_tests = unit/test-unit \
 			unit/test-hwdb \
 			unit/test-dbus \
 			unit/test-dbus-util \
+			unit/test-dbus-message \
 			unit/test-dbus-message-fds \
 			unit/test-dbus-properties \
 			unit/test-dbus-service \
 			unit/test-dbus-watch
 
-dbus_tests = unit/test-dbus-message \
-			unit/test-gvariant-util \
+dbus_tests = unit/test-gvariant-util \
 			unit/test-gvariant-message
 
 cert_tests = unit/test-pem \
