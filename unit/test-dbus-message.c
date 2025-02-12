@@ -2857,6 +2857,8 @@ int main(int argc, char *argv[])
 {
 	l_test_init(&argc, &argv);
 
+	l_test_set_default_flags(L_TEST_FLAG_LITTLE_ENDIAN_ONLY);
+
 	l_test_add("Basic 1 (parse)", parse_basic_1, &message_data_basic_1);
 	l_test_add("Basic 1 (build)", build_basic_1, &message_data_basic_1);
 	l_test_add("Basic 2 (parse)", parse_basic_2, &message_data_basic_2);
