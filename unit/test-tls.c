@@ -1038,17 +1038,15 @@ int main(int argc, char *argv[])
 		struct tls_bulk_encryption_algorithm *alg = suite->encryption;
 		bool supported;
 
-		if (l_str_has_prefix(suite->name, "TLS_ECDHE_ECDSA"))
-			continue;
-
 		if (alg->cipher_type == TLS_CIPHER_AEAD)
 			supported = l_aead_cipher_is_supported(alg->l_aead_id);
 		else
 			supported = l_cipher_is_supported(alg->l_id);
 
 		if (supported) {
-			l_test_add(suite->name, test_tls_suite_test,
-					suite->name);
+			l_test_add_data_func(suite->name,
+					suite->name, test_tls_suite_test,
+					L_TEST_FLAG_ALLOW_FAILURE);
 		} else {
 			printf("Skipping %s due to missing cipher support\n",
 				suite->name);
