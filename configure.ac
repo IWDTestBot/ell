@@ -145,7 +145,6 @@ AC_ARG_ENABLE(examples, AS_HELP_STRING([--disable-examples],
 					[enable_examples=${enableval}])
 AM_CONDITIONAL(EXAMPLES, test "${enable_examples}" != "no")
 
-AM_CONDITIONAL(DBUS_TESTS, test "${little_endian}" = "yes")
 AM_CONDITIONAL(CERT_TESTS, test "${have_openssl}" = "yes")
 AM_CONDITIONAL(OPENSSL_PROVIDER, test "${have_openssl}" = "yes" &&
 				openssl list -providers > /dev/null 2>&1 )

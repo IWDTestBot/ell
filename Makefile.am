@@ -264,7 +264,7 @@ cert_checks = unit/cert-intca \
 
 if TESTS
 if MAINTAINER_MODE
-noinst_PROGRAMS += $(unit_tests) $(dbus_tests) $(cert_tests)
+noinst_PROGRAMS += $(unit_tests) $(cert_tests)
 endif
 endif
 
@@ -423,16 +423,12 @@ TESTS =
 if TESTS
 TESTS += $(unit_tests)
 
-if DBUS_TESTS
-TESTS += $(dbus_tests)
-endif
-
 if CERT_TESTS
 TESTS += $(cert_tests)
 endif
 endif
 
-DISTCLEANFILES = $(unit_tests) $(dbus_tests) $(cert_tests)
+DISTCLEANFILES = $(unit_tests) $(cert_tests)
 
 MAINTAINERCLEANFILES = Makefile.in configure config.h.in aclocal.m4
 
