@@ -1,3 +1,6 @@
+ver 0.73:
+	Fix issue with parsing hwdb.bin child structures.
+
 ver 0.72:
 	Add support for the Test Anything Protocol.
 
