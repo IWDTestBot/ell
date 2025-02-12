@@ -155,8 +155,9 @@ int main(int argc, char *argv[])
 					pbkdf2_test, &pbkdf2_test_vector_2);
 	l_test_add("/pbkdf2-sha1/PBKDF2 Test vector 3",
 					pbkdf2_test, &pbkdf2_test_vector_3);
-	l_test_add("/pbkdf2-sha1/PBKDF2 Test vector 4",
-					pbkdf2_test, &pbkdf2_test_vector_4);
+	l_test_add_data_func("/pbkdf2-sha1/PBKDF2 Test vector 4",
+					&pbkdf2_test_vector_4, pbkdf2_test,
+					L_TEST_FLAG_EXPENSIVE_COMPUTATION);
 	l_test_add("/pbkdf2-sha1/PBKDF2 Test vector 5",
 					pbkdf2_test, &pbkdf2_test_vector_5);
 
