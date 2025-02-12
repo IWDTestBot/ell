@@ -216,7 +216,7 @@ static void trie_fnmatch(struct l_hwdb *hwdb, uint64_t offset,
 	const struct trie_node *node = addr + offset;
 	const void *addr_ptr = addr + offset + hwdb->node_size;
 	const char *prefix_str = addr + L_LE64_TO_CPU(node->prefix_offset);
-	uint64_t child_count = L_LE64_TO_CPU(node->child_count);
+	uint8_t child_count = node->child_count;
 	uint64_t entry_count = L_LE64_TO_CPU(node->entry_count);
 	uint64_t i;
 	size_t scratch_len;
@@ -330,7 +330,7 @@ static void foreach_node(struct l_hwdb *hwdb,
 	const struct trie_node *node = addr + offset;
 	const void *addr_ptr = addr + offset + hwdb->node_size;
 	const char *prefix_str = addr + L_LE64_TO_CPU(node->prefix_offset);
-	uint64_t child_count = L_LE64_TO_CPU(node->child_count);
+	uint8_t child_count = node->child_count;
 	uint64_t entry_count = L_LE64_TO_CPU(node->entry_count);
 	uint64_t i;
 	size_t scratch_len;
