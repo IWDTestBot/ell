@@ -71,6 +71,7 @@ static unsigned int test_count;
 static bool testing_active;
 static int signal_fd;
 
+static bool run_all;
 static bool cmd_list;
 static bool tap_enable;
 static bool debug_enable;
@@ -89,6 +90,7 @@ static unsigned long default_flags = 0;
 LIB_EXPORT void l_test_init(int *argc, char ***argv)
 {
 	static const struct option options[] = {
+		{ "all",	no_argument,	NULL, 'a' },
 		{ "list",	no_argument,	NULL, 'l' },
 		{ "text",	no_argument,	NULL, 't' },
 		{ "debug",	no_argument,	NULL, 'd' },
@@ -101,6 +103,7 @@ LIB_EXPORT void l_test_init(int *argc, char ***argv)
 
 	l_log_set_stderr();
 
+	run_all = false;
 	cmd_list = false;
 	tap_enable = true;
 	debug_enable = false;
@@ -108,11 +111,14 @@ LIB_EXPORT void l_test_init(int *argc, char ***argv)
 	for (;;) {
 		int opt;
 
-		opt = getopt_long(*argc, *argv, "ltd", options, NULL);
+		opt = getopt_long(*argc, *argv, "altd", options, NULL);
 		if (opt < 0)
 			break;
 
 		switch (opt) {
+		case 'a':
+			run_all = true;
+			break;
 		case 'l':
 			cmd_list = true;
 			break;
@@ -251,7 +257,7 @@ static void dbus_ready(void *user_data)
 {
 	struct test *test = user_data;
 
-	if (test->flags & L_TEST_FLAG_EXPENSIVE_COMPUTATION) {
+	if (!run_all && (test->flags & L_TEST_FLAG_EXPENSIVE_COMPUTATION)) {
 		/*
 		 * Abort test cases with long running computation task
 		 * to fail and with the be gracefully skipped
