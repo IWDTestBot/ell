@@ -58,11 +58,14 @@ static void test_hwdb(const void *data)
 {
 	struct l_hwdb *hwdb;
 	struct hwdb_stats stats = { 0 };
+	bool result;
 
 	hwdb = l_hwdb_new_default();
 	assert(hwdb);
 
-	l_hwdb_foreach(hwdb, check_entry, &stats);
+	result = l_hwdb_foreach(hwdb, check_entry, &stats);
+	assert(result);
+
 	fprintf(stderr, "Found %d aliases with %d total entries\n",
 					       stats.aliases, stats.entries);
 
