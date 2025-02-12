@@ -955,7 +955,7 @@ int main(int argc, char *argv[])
 			&tls12_prf_sha512_0);
 
 	if (l_key_is_supported(L_KEY_FEATURE_RESTRICT)) {
-		l_test_add("Certificate chains", test_certificates, NULL);
+		l_test_add_func("Certificate chains", test_certificates, 0);
 		l_test_add_func("ECDSA Certificates", test_ec_certificates,
 						L_TEST_FLAG_ALLOW_FAILURE);
 	}
@@ -985,53 +985,75 @@ int main(int argc, char *argv[])
 		printf("Running sysctl kernel.keys.%s=2000 is recommended\n",
 			getuid() > 0 ? "maxkeys" : "root_maxkeys");
 
-	l_test_add("TLS connection no auth", test_tls_test,
-			&tls_conn_test_no_auth);
-	l_test_add("TLS connection server auth", test_tls_test,
-			&tls_conn_test_server_auth);
-	l_test_add("TLS connection client auth attempt", test_tls_test,
-			&tls_conn_test_client_auth_attempt);
-	l_test_add("TLS connection client auth", test_tls_test,
-			&tls_conn_test_client_auth);
-	l_test_add("TLS connection full auth attempt", test_tls_test,
-			&tls_conn_test_full_auth_attempt);
-	l_test_add("TLS connection full auth", test_tls_test,
-			&tls_conn_test_full_auth);
+	l_test_add_data_func("TLS connection no auth",
+			&tls_conn_test_no_auth, test_tls_test,
+			L_TEST_FLAG_ALLOW_FAILURE);
+	l_test_add_data_func("TLS connection server auth",
+			&tls_conn_test_server_auth, test_tls_test,
+			L_TEST_FLAG_ALLOW_FAILURE);
+	l_test_add_data_func("TLS connection client auth attempt",
+			&tls_conn_test_client_auth_attempt, test_tls_test,
+			L_TEST_FLAG_ALLOW_FAILURE);
+	l_test_add_data_func("TLS connection client auth",
+			&tls_conn_test_client_auth, test_tls_test,
+			L_TEST_FLAG_ALLOW_FAILURE);
+	l_test_add_data_func("TLS connection full auth attempt",
+			&tls_conn_test_full_auth_attempt, test_tls_test,
+			L_TEST_FLAG_ALLOW_FAILURE);
+	l_test_add_data_func("TLS connection full auth",
+			&tls_conn_test_full_auth, test_tls_test,
+			L_TEST_FLAG_ALLOW_FAILURE);
 
-	l_test_add("TLS connection bad client cipher suite", test_tls_test,
-			&tls_conn_test_bad_client_suite);
-	l_test_add("TLS connection cipher suite mismatch", test_tls_test,
-			&tls_conn_test_suite_mismatch);
+	l_test_add_data_func("TLS connection bad client cipher suite",
+			&tls_conn_test_bad_client_suite, test_tls_test,
+			L_TEST_FLAG_ALLOW_FAILURE);
+	l_test_add_data_func("TLS connection cipher suite mismatch",
+			&tls_conn_test_suite_mismatch, test_tls_test,
+			L_TEST_FLAG_ALLOW_FAILURE);
 
-	l_test_add("TLS connection version mismatch",
-			test_tls_version_mismatch_test, NULL);
+	l_test_add_func("TLS connection version mismatch",
+			test_tls_version_mismatch_test,
+			L_TEST_FLAG_ALLOW_FAILURE);
 
-	l_test_add("TLS connection domain match 1", test_tls_test,
-			&tls_conn_test_domain_match1);
-	l_test_add("TLS connection domain match 2", test_tls_test,
-			&tls_conn_test_domain_match2);
-	l_test_add("TLS connection domain match 3", test_tls_test,
-			&tls_conn_test_domain_match3);
-	l_test_add("TLS connection domain match 4", test_tls_test,
-			&tls_conn_test_domain_match4);
-	l_test_add("TLS connection domain match 5", test_tls_test,
-			&tls_conn_test_domain_match5);
-	l_test_add("TLS connection domain match 6", test_tls_test,
-			&tls_conn_test_domain_match6);
-	l_test_add("TLS connection domain match 7", test_tls_test,
-			&tls_conn_test_domain_match7);
-	l_test_add("TLS connection domain mismatch 1", test_tls_test,
-			&tls_conn_test_domain_mismatch1);
-	l_test_add("TLS connection domain mismatch 2", test_tls_test,
-			&tls_conn_test_domain_mismatch2);
-	l_test_add("TLS connection domain mismatch 3", test_tls_test,
-			&tls_conn_test_domain_mismatch3);
-	l_test_add("TLS connection domain mismatch 4", test_tls_test,
-			&tls_conn_test_domain_mismatch4);
-	l_test_add("TLS connection domain mismatch 5", test_tls_test,
-			&tls_conn_test_domain_mismatch5);
-	l_test_add("TLS connection domain mismatch 6", test_tls_test,
-			&tls_conn_test_domain_mismatch6);
+	l_test_add_data_func("TLS connection domain match 1",
+			&tls_conn_test_domain_match1, test_tls_test,
+			L_TEST_FLAG_ALLOW_FAILURE);
+	l_test_add_data_func("TLS connection domain match 2",
+			&tls_conn_test_domain_match2, test_tls_test,
+			L_TEST_FLAG_ALLOW_FAILURE);
+	l_test_add_data_func("TLS connection domain match 3",
+			&tls_conn_test_domain_match3, test_tls_test,
+			L_TEST_FLAG_ALLOW_FAILURE);
+	l_test_add_data_func("TLS connection domain match 4",
+			&tls_conn_test_domain_match4, test_tls_test,
+			L_TEST_FLAG_ALLOW_FAILURE);
+	l_test_add_data_func("TLS connection domain match 5",
+			&tls_conn_test_domain_match5, test_tls_test,
+			L_TEST_FLAG_ALLOW_FAILURE);
+	l_test_add_data_func("TLS connection domain match 6",
+			&tls_conn_test_domain_match6, test_tls_test,
+			L_TEST_FLAG_ALLOW_FAILURE);
+	l_test_add_data_func("TLS connection domain match 7",
+			&tls_conn_test_domain_match7, test_tls_test,
+			L_TEST_FLAG_ALLOW_FAILURE);
+	l_test_add_data_func("TLS connection domain mismatch 1",
+			&tls_conn_test_domain_mismatch1, test_tls_test,
+			L_TEST_FLAG_ALLOW_FAILURE);
+	l_test_add_data_func("TLS connection domain mismatch 2",
+			&tls_conn_test_domain_mismatch2, test_tls_test,
+			L_TEST_FLAG_ALLOW_FAILURE);
+	l_test_add_data_func("TLS connection domain mismatch 3",
+			&tls_conn_test_domain_mismatch3, test_tls_test,
+			L_TEST_FLAG_ALLOW_FAILURE);
+	l_test_add_data_func("TLS connection domain mismatch 4",
+			&tls_conn_test_domain_mismatch4, test_tls_test,
+			L_TEST_FLAG_ALLOW_FAILURE);
+	l_test_add_data_func("TLS connection domain mismatch 5",
+			&tls_conn_test_domain_mismatch5, test_tls_test,
+			L_TEST_FLAG_ALLOW_FAILURE);
+	l_test_add_data_func("TLS connection domain mismatch 6",
+			&tls_conn_test_domain_mismatch6, test_tls_test,
+			L_TEST_FLAG_ALLOW_FAILURE);
 
 	for (i = 0; tls_cipher_suite_pref[i]; i++) {
 		struct tls_cipher_suite *suite = tls_cipher_suite_pref[i];
