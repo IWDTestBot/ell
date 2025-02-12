@@ -154,6 +154,7 @@ static void print_result(struct test *test, bool success)
 	bool failure_expected = test->flags & L_TEST_FLAG_FAILURE_EXPECTED;
 	bool allow_failure = test->flags & L_TEST_FLAG_ALLOW_FAILURE;
 	bool little_endian = test->flags & L_TEST_FLAG_LITTLE_ENDIAN_ONLY;
+	bool mark_little_endian = !little_endian_system && little_endian;
 	bool mark_skip = false;
 
 	if (failure_expected && !success)
@@ -169,9 +170,11 @@ static void print_result(struct test *test, bool success)
 		mark_skip = true;
 	}
 
-	printf("%sok %u - %s%s\n", success ? "" : "not ",
-					test->num, test->name,
-					mark_skip ? " # SKIP" : "");
+	printf("%sok %u - %s%s%s%s\n",
+			success ? "" : "not ", test->num, test->name,
+			(mark_skip || mark_little_endian) ? " #" : "",
+			mark_skip ? " SKIP" : "",
+			mark_little_endian ? " LITTLE_ENDIAN_ONLY" : "");
 }
 
 static void test_setup(struct test *test)
