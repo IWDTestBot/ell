@@ -212,14 +212,14 @@ unit_tests = unit/test-unit \
 			unit/test-minheap \
 			unit/test-notifylist \
 			unit/test-hwdb \
-			unit/test-dbus
-
-dbus_tests =  unit/test-dbus-util \
-			unit/test-dbus-message \
+			unit/test-dbus \
+			unit/test-dbus-util \
 			unit/test-dbus-message-fds \
-			unit/test-dbus-service \
-			unit/test-dbus-watch \
 			unit/test-dbus-properties \
+			unit/test-dbus-service \
+			unit/test-dbus-watch
+
+dbus_tests = unit/test-dbus-message \
 			unit/test-gvariant-util \
 			unit/test-gvariant-message
 
