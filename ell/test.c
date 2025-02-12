@@ -36,6 +36,14 @@
 #define WAIT_ANY (-1) /* Any process */
 #endif
 
+#if __BYTE_ORDER == __LITTLE_ENDIAN
+static bool little_endian_system = true;
+#elif __BYTE_ORDER == __BIG_ENDIAN
+static bool little_endian_system = false;
+#else
+#error "Unknown byte order"
+#endif
+
 /**
  * SECTION:test
  * @short_description: Unit test framework
@@ -156,7 +164,7 @@ static void print_result(struct test *test, bool success)
 		mark_skip = true;
 	}
 
-	if (little_endian && !success) {
+	if (!little_endian_system && little_endian && !success) {
 		success = true;
 		mark_skip = true;
 	}
@@ -229,21 +237,6 @@ static void test_sigchld(void *user_data)
 static void dbus_ready(void *user_data)
 {
 	struct test *test = user_data;
-	bool little_endian;
-
-#if __BYTE_ORDER == __LITTLE_ENDIAN
-	little_endian = true;
-#elif __BYTE_ORDER == __BIG_ENDIAN
-	little_endian = false;
-#else
-#error "Unknown byte order"
-#endif
-
-	if ((test->flags & L_TEST_FLAG_LITTLE_ENDIAN_ONLY) && !little_endian) {
-		/* Fail the test case and change the error to SKIP */
-		abort();
-		return;
-	}
 
 	test->function(test->data);
 }
