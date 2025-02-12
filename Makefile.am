@@ -210,11 +210,11 @@ unit_tests = unit/test-unit \
 			unit/test-net \
 			unit/test-sysctl \
 			unit/test-minheap \
-			unit/test-notifylist
+			unit/test-notifylist \
+			unit/test-hwdb \
+			unit/test-dbus
 
-dbus_tests = unit/test-hwdb \
-			unit/test-dbus \
-			unit/test-dbus-util \
+dbus_tests =  unit/test-dbus-util \
 			unit/test-dbus-message \
 			unit/test-dbus-message-fds \
 			unit/test-dbus-service \
