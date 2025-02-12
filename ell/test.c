@@ -164,6 +164,7 @@ static void print_result(struct test *test, bool success)
 	if (allow_failure && !success) {
 		success = true;
 		mark_skip = true;
+		comment = " allow-failure";
 	}
 
 	if (!little_endian_system && little_endian) {
