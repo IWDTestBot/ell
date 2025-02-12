@@ -154,8 +154,9 @@ static void print_result(struct test *test, bool success)
 	bool failure_expected = test->flags & L_TEST_FLAG_FAILURE_EXPECTED;
 	bool allow_failure = test->flags & L_TEST_FLAG_ALLOW_FAILURE;
 	bool little_endian = test->flags & L_TEST_FLAG_LITTLE_ENDIAN_ONLY;
-	bool mark_little_endian = !little_endian_system && little_endian;
+	bool expensive_comp = test->flags & L_TEST_FLAG_EXPENSIVE_COMPUTATION;
 	bool mark_skip = false;
+	const char *comment = NULL;
 
 	if (failure_expected && !success)
 		success = true;
@@ -165,16 +166,24 @@ static void print_result(struct test *test, bool success)
 		mark_skip = true;
 	}
 
-	if (!little_endian_system && little_endian && !success) {
+	if (!little_endian_system && little_endian) {
+		if (!success) {
+			success = true;
+			mark_skip = true;
+		}
+		comment = " little-endian-only";
+	}
+
+	if (expensive_comp && !success) {
 		success = true;
 		mark_skip = true;
+		comment = " expensive-computation";
 	}
 
 	printf("%sok %u - %s%s%s%s\n",
 			success ? "" : "not ", test->num, test->name,
-			(mark_skip || mark_little_endian) ? " #" : "",
-			mark_skip ? " SKIP" : "",
-			mark_little_endian ? " LITTLE_ENDIAN_ONLY" : "");
+			(mark_skip || comment) ? " #" : "",
+			mark_skip ? " SKIP" : "", comment ? comment : "");
 }
 
 static void test_setup(struct test *test)
@@ -240,6 +249,15 @@ static void test_sigchld(void *user_data)
 static void dbus_ready(void *user_data)
 {
 	struct test *test = user_data;
+
+	if (test->flags & L_TEST_FLAG_EXPENSIVE_COMPUTATION) {
+		/*
+		 * Abort test cases with long running computation task
+		 * to fail and with the be gracefully skipped
+		 */
+		abort();
+		return;
+	}
 
 	test->function(test->data);
 }
