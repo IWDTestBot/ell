@@ -218,9 +218,8 @@ unit_tests = unit/test-unit \
 			unit/test-dbus-message-fds \
 			unit/test-dbus-properties \
 			unit/test-dbus-service \
-			unit/test-dbus-watch
-
-dbus_tests = unit/test-gvariant-util \
+			unit/test-dbus-watch \
+			unit/test-gvariant-util \
 			unit/test-gvariant-message
 
 cert_tests = unit/test-pem \
