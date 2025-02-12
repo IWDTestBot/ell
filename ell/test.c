@@ -69,6 +69,8 @@ static bool debug_enable;
 
 static pid_t test_pid = -1;
 
+static unsigned long default_flags = 0;
+
 /**
  * l_test_init:
  * @argc: pointer to @argc parameter of main() function
@@ -540,5 +542,16 @@ LIB_EXPORT void l_test_add_data_func(const char *name, const void *data,
 LIB_EXPORT void l_test_add(const char *name, l_test_func_t function,
 							const void *data)
 {
-	l_test_add_data_func(name, data, function, 0);
+	l_test_add_data_func(name, data, function, default_flags);
+}
+
+/**
+ * l_test_set_default_flags:
+ * @flags: test flags;
+ *
+ * Set default for test flags.
+ **/
+LIB_EXPORT void l_test_set_default_flags(unsigned long flags)
+{
+	default_flags = flags;
 }

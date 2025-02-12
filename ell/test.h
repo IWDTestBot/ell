@@ -30,6 +30,8 @@ void l_test_add_data_func(const char *name, const void *data,
 
 void l_test_add(const char *name, l_test_func_t function, const void *data);
 
+void l_test_set_default_flags(unsigned long flags);
+
 #ifdef __cplusplus
 }
 #endif
