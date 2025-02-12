@@ -1720,6 +1720,8 @@ int main(int argc, char *argv[])
 {
 	l_test_init(&argc, &argv);
 
+	l_test_set_default_flags(L_TEST_FLAG_LITTLE_ENDIAN_ONLY);
+
 	l_test_add("Signature Test 1", test_signature, &sig_test1);
 	l_test_add("Signature test 2", test_signature, &sig_test2);
 	l_test_add("Signature test 3", test_signature, &sig_test3);
