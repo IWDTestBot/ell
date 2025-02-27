@@ -55,14 +55,14 @@ static void test_path_find(const void *data)
 	static const char *cant_find = "/foo:/bar:/dir:fr";
 	static const char *can_find = "/tmp";
 	char *tmp_path = l_strdup("/tmp/foobarXXXXXX.tmp");
-	char *base;
+	const char *base;
 	char *path;
 	int fd;
 
 	fd = L_TFR(mkostemps(tmp_path, 4, O_CLOEXEC));
 	assert(fd > 0);
 	L_TFR(close(fd));
-	base = basename(tmp_path);
+	base = l_basename(tmp_path);
 
 	assert(l_path_find(base, cant_find, F_OK) == NULL);
 
