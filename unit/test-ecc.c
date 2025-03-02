@@ -411,6 +411,87 @@ static void run_test_compressed_points(const void *arg)
 	}
 }
 
+struct ecc_keypair {
+	const char *curve_name;
+	const char *private_key;
+	const char *public_key;
+};
+
+static void keypair_test(const void *arg)
+{
+	const struct ecc_keypair *keypair = arg;
+	const struct l_ecc_curve *curve;
+	struct l_ecc_scalar *private_key;
+	struct l_ecc_point *public_key;
+	void *buf;
+	size_t len;
+	char *str;
+
+	curve = l_ecc_curve_from_name(keypair->curve_name);
+	assert(curve);
+
+	buf = l_util_from_hexstring(keypair->private_key, &len);
+	assert(buf);
+
+	private_key = l_ecc_scalar_new(curve, buf, len);
+	assert(private_key);
+
+	l_free(buf);
+
+	public_key = l_ecc_point_new(curve);
+	assert(public_key);
+
+	l_ecc_point_multiply_g(public_key, private_key);
+
+	buf = l_malloc(len * 2);
+	assert(buf);
+
+	l_ecc_point_get_data(public_key, buf, len * 2);
+
+	str = l_util_hexstring_upper(buf, len * 2);
+	assert(str);
+	assert(!strcmp(str, keypair->public_key));
+
+	l_free(str);
+	l_free(buf);
+}
+
+static const struct ecc_keypair keypair_p192 = {
+	/* RFC 6979 - Appendix A.2.3.  ECDSA, 192 Bits (Prime Field) */
+	.curve_name	= "secp192r1",
+	.private_key	= "6FAB034934E4C0FC9AE67F5B5659A9D7"
+			  "D1FEFD187EE09FD4",
+	.public_key	= "AC2C77F529F91689FEA0EA5EFEC7F210"
+			  "D8EEA0B9E047ED56"
+			  "3BC723E57670BD4887EBC732C523063D"
+			  "0A7C957BC97C1C43",
+};
+
+static const struct ecc_keypair keypair_p256 = {
+	/* RFC 6979 - Appendix A.2.5.  ECDSA, 256 Bits (Prime Field) */
+	.curve_name	= "secp256r1",
+	.private_key	= "C9AFA9D845BA75166B5C215767B1D693"
+			  "4E50C3DB36E89B127B8A622B120F6721",
+	.public_key	= "60FED4BA255A9D31C961EB74C6356D68"
+			  "C049B8923B61FA6CE669622E60F29FB6"
+			  "7903FE1008B8BC99A41AE9E95628BC64"
+			  "F2F1B20C2D7E9F5177A3C294D4462299",
+};
+
+static const struct ecc_keypair keypair_p384 = {
+	/* RFC 6979 - Appendix A.2.6.  ECDSA, 384 Bits (Prime Field) */
+	.curve_name	= "secp384r1",
+	.private_key	= "6B9D3DAD2E1B8C1C05B19875B6659F4D"
+			  "E23C3B667BF297BA9AA47740787137D8"
+			  "96D5724E4C70A825F872C9EA60D2EDF5",
+	.public_key	= "EC3A4E415B4E19A4568618029F427FA5"
+			  "DA9A8BC4AE92E02E06AAE5286B300C64"
+			  "DEF8F0EA9055866064A254515480BC13"
+			  "8015D9B72D7D57244EA8EF9AC0C62189"
+			  "6708A59367F9DFB9F54CA84B3F1C9DB1"
+			  "288B231C3AE0D4FE7344FD2533264720",
+};
+
 int main(int argc, char *argv[])
 {
 	l_test_init(&argc, &argv);
@@ -433,6 +514,10 @@ int main(int argc, char *argv[])
 	l_test_add("ECC reduce test", run_test_reduce, NULL);
 	l_test_add("ECC zero or one test", run_test_zero_or_one, NULL);
 	l_test_add("ECC compressed points", run_test_compressed_points, NULL);
+
+	l_test_add("ECC P-192 key pair test", keypair_test, &keypair_p192);
+	l_test_add("ECC P-256 key pair test", keypair_test, &keypair_p256);
+	l_test_add("ECC P-384 key pair test", keypair_test, &keypair_p384);
 
 	return l_test_run();
 }
