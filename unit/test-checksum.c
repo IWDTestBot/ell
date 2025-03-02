@@ -239,26 +239,21 @@ int main(int argc, char *argv[])
 
 	l_test_add("unsupported", test_unsupported, NULL);
 
-	if (l_checksum_is_supported(L_CHECKSUM_MD4, false))
-		l_test_add("md4-1", test_md4, NULL);
+	l_test_add_func("md4-1", test_md4, L_TEST_FLAG_ALLOW_FAILURE);
+	l_test_add_func("md5-1", test_md5, L_TEST_FLAG_ALLOW_FAILURE);
 
-	if (l_checksum_is_supported(L_CHECKSUM_MD5, false))
-		l_test_add("md5-1", test_md5, NULL);
+	l_test_add_func("sha1-1", test_sha1, L_TEST_FLAG_ALLOW_FAILURE);
+	l_test_add_func("checksum reset", test_reset,
+						L_TEST_FLAG_ALLOW_FAILURE);
+	l_test_add_func("checksum updatev", test_updatev,
+						L_TEST_FLAG_ALLOW_FAILURE);
 
-	if (l_checksum_is_supported(L_CHECKSUM_SHA1, false)) {
-		l_test_add("sha1-1", test_sha1, NULL);
+	l_test_add_func("sha256-1", test_sha256, L_TEST_FLAG_ALLOW_FAILURE);
 
-		l_test_add("checksum reset", test_reset, NULL);
-		l_test_add("checksum updatev", test_updatev, NULL);
-	}
-
-	if (l_checksum_is_supported(L_CHECKSUM_SHA256, false))
-		l_test_add("sha256-1", test_sha256, NULL);
-
-	if (l_checksum_cmac_aes_supported()) {
-		l_test_add("aes-cmac-1", test_aes_cmac, &aes_cmac_test1);
-		l_test_add("aes-cmac-2", test_aes_cmac, &aes_cmac_test2);
-	}
+	l_test_add_data_func("aes-cmac-1", &aes_cmac_test1, test_aes_cmac,
+						L_TEST_FLAG_ALLOW_FAILURE);
+	l_test_add_data_func("aes-cmac-2", &aes_cmac_test2, test_aes_cmac,
+						L_TEST_FLAG_ALLOW_FAILURE);
 
 	return l_test_run();
 }
