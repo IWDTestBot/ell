@@ -25,6 +25,35 @@
 #include "missing.h"
 
 /*
+ * RFC 5114 - Section 2.4 192-bit Random ECP Group
+ */
+#define P192_CURVE_P { 0xFFFFFFFFFFFFFFFFull, 0xFFFFFFFFFFFFFFFEull, \
+			0xFFFFFFFFFFFFFFFFull }
+#define P192_CURVE_GX { 0xF4FF0AFD82FF1012ull, 0x7CBF20EB43A18800ull, \
+			0x188DA80EB03090F6ull }
+#define P192_CURVE_GY { 0x73F977A11E794811ull, 0x631011ED6B24CDD5ull, \
+			0x07192B95FFC8DA78ull }
+#define P192_CURVE_N { 0x146BC9B1B4D22831ull, 0xFFFFFFFF99DEF836ull, \
+			0xFFFFFFFFFFFFFFFFull }
+#define P192_CURVE_B { 0xFEB8DEECC146B9B1ull, 0x0FA7E9AB72243049ull, \
+			0x64210519E59C80E7ull }
+
+static const struct l_ecc_curve p192 = {
+	.name = "secp192r1",
+	.ike_group = 25,
+	.tls_group = 19,
+	.ndigits = 3,
+	.g = {
+		.x = P192_CURVE_GX,
+		.y = P192_CURVE_GY,
+		.curve = &p192
+	},
+	.p = P192_CURVE_P,
+	.n = P192_CURVE_N,
+	.b = P192_CURVE_B,
+};
+
+/*
  * RFC 5114 - Section 2.6 256-bit Random ECP Group
  */
 #define P256_CURVE_P { 0xFFFFFFFFFFFFFFFFull, 0x00000000FFFFFFFFull, \
@@ -92,6 +121,7 @@ static const struct l_ecc_curve p384 = {
 static const struct l_ecc_curve *curves[] = {
 	&p384,
 	&p256,
+	&p192,
 };
 
 /* Returns supported IKE groups, sorted by the highest effective key size */
