@@ -514,6 +514,17 @@ static const struct ecc_keypair keypair_p256_bt = {
 			  "766345C28FED3024741C8ED01589D28B",
 };
 
+static const struct ecc_keypair keypair_p256_openssl = {
+	/* OpenSSL example from EVP_PKEY_fromdata() manual page */
+	.curve_name	= "secp256r1",
+	.private_key	= "B92F3CE62FFB45683996F02AAF6CDAF2"
+			  "898A27BF399B7E5421C2A1E53612485D",
+	.public_key	= "CF20FB9A1D116C5E9FEC38876C1D2F58"
+			  "47ABA39B7923E6EB946F97DBA37DBDE5"
+			  "26CA07178D2675FFCB8EB684D0240225"
+			  "8FB9336ECF12162F5CCD8671A8BF1A47",
+};
+
 int main(int argc, char *argv[])
 {
 	l_test_init(&argc, &argv);
@@ -545,6 +556,8 @@ int main(int argc, char *argv[])
 					keypair_test, &keypair_p192_bt);
 	l_test_add("ECC P-256 Bluetooth debug key pair test",
 					keypair_test, &keypair_p256_bt);
+	l_test_add("ECC P-256 OpenSSL example key pair test",
+					keypair_test, &keypair_p256_openssl);
 
 	return l_test_run();
 }
