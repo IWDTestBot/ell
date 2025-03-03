@@ -1,3 +1,7 @@
+ver 0.74:
+	Add support for NIST P-192 curve usage with ECDH.
+	Add support for SHA-224 based checksums and HMACs.
+
 ver 0.73:
 	Fix issue with parsing hwdb.bin child structures.
 
