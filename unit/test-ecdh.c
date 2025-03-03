@@ -78,6 +78,64 @@ static void test_basic(const void *data)
 }
 
 /*
+ * Test vector from RFC 5114 - 192-bit Random ECP Group
+ */
+static void test_vector_p192(const void *data)
+{
+	const struct l_ecc_curve *curve = l_ecc_curve_from_ike_group(25);
+
+	uint64_t a_sec_buf[3] = { 0xAB5BE0E249C43426ull, 0x93F59476BC142000ull,
+				0x323FA3169D8E9C65ull };
+	uint64_t a_pub_buf[6] = { 0xE249ABAADD870612ull, 0xE7B3D32566E2B122ull,
+				0xCD46489ECFD6C105ull,
+				0x8FD3844317916E9Aull, 0x4DC3D6FD11F0A26Full,
+				0x68887B4877DF51DDull };
+
+	uint64_t b_sec_buf[3] = { 0x240A0499307FCF62ull, 0x9C476EEE9AB695ABull,
+				0x631F95BB4A67632Cull };
+	uint64_t b_pub_buf[6] = { 0x973B500577EF13D5ull, 0x66BA21DF2EEE47F5ull,
+				0x519A121680E00454ull,
+				0xB30CA072C60AA57Full, 0x20875BDB10F953F6ull,
+				0xFF613AB4D64CEE3Aull };
+
+	uint64_t ss_buf[3] = { 0xE5FF4F837F54FEBEull, 0xBFE954ACDA376F05ull,
+				0xAD420182633F8526ull };
+
+	struct l_ecc_scalar *a_shared;
+	struct l_ecc_scalar *b_shared;
+
+	struct l_ecc_scalar *a_secret = _ecc_constant_new(curve, a_sec_buf,
+							sizeof(a_sec_buf));
+	struct l_ecc_point *a_public = l_ecc_point_new(curve);
+
+	struct l_ecc_scalar *b_secret = _ecc_constant_new(curve, b_sec_buf,
+							sizeof(b_sec_buf));
+	struct l_ecc_point *b_public = l_ecc_point_new(curve);
+
+	memcpy(a_public->x, a_pub_buf, 24);
+	memcpy(a_public->y, a_pub_buf + 3, 24);
+	memcpy(b_public->x, b_pub_buf, 24);
+	memcpy(b_public->y, b_pub_buf + 3, 24);
+
+	use_real_getrandom = false;
+
+	assert(l_ecdh_generate_shared_secret(a_secret, b_public, &a_shared));
+	assert(l_ecdh_generate_shared_secret(b_secret, a_public, &b_shared));
+
+	assert(!memcmp(a_shared->c, ss_buf, 24));
+	assert(!memcmp(b_shared->c, ss_buf, 24));
+
+	use_real_getrandom = true;
+
+	l_ecc_scalar_free(a_secret);
+	l_ecc_scalar_free(b_secret);
+	l_ecc_point_free(a_public);
+	l_ecc_point_free(b_public);
+	l_ecc_scalar_free(a_shared);
+	l_ecc_scalar_free(b_shared);
+}
+
+/*
  * Test vector from RFC 5114 - 256-bit Random ECP Group
  */
 static void test_vector_p256(const void *data)
@@ -207,6 +265,7 @@ int main(int argc, char *argv[])
 	if (l_getrandom_is_supported())
 		l_test_add("ECDH Basic", test_basic, NULL);
 
+	l_test_add("ECDH test vector P192", test_vector_p192, NULL);
 	l_test_add("ECDH test vector P256", test_vector_p256, NULL);
 	l_test_add("ECDH test vector P384", test_vector_p384, NULL);
 
