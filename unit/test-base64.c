@@ -151,6 +151,56 @@ static void test_base64_encode(const void *data)
 	l_free(encoded);
 }
 
+static const struct base64_encode_test rfc4648_test1 = {
+	.input	= "",
+	.output	= "",
+};
+
+static const struct base64_encode_test rfc4648_test2 = {
+	.input	= "f",
+	.output	= "Zg==",
+};
+
+static const struct base64_encode_test rfc4648_test3 = {
+	.input	= "fo",
+	.output	= "Zm8=",
+};
+
+static const struct base64_encode_test rfc4648_test4 = {
+	.input	= "foo",
+	.output	= "Zm9v",
+};
+
+static const struct base64_encode_test rfc4648_test5 = {
+	.input	= "foob",
+	.output	= "Zm9vYg==",
+};
+
+static const struct base64_encode_test rfc4648_test6 = {
+	.input	= "fooba",
+	.output	= "Zm9vYmE=",
+};
+
+static const struct base64_encode_test rfc4648_test7 = {
+	.input	= "foobar",
+	.output	= "Zm9vYmFy",
+};
+
+static void test_base64_decode2(const void *data)
+{
+	const struct base64_encode_test *test = data;
+	uint8_t *decoded;
+	size_t decoded_size;
+
+	decoded = l_base64_decode(test->output, strlen(test->output),
+								&decoded_size);
+	assert(decoded);
+	assert(decoded_size == strlen(test->input));
+	assert(!memcmp(decoded, test->input, strlen(test->input)));
+
+	l_free(decoded);
+}
+
 int main(int argc, char *argv[])
 {
 	l_test_init(&argc, &argv);
@@ -169,6 +219,21 @@ int main(int argc, char *argv[])
 	l_test_add("base64/encode/test2", test_base64_encode, &encode_2);
 	l_test_add("base64/encode/test3", test_base64_encode, &encode_3);
 	l_test_add("base64/encode/test4", test_base64_encode, &encode_4);
+
+	l_test_add("base64/rfc4648/enc1", test_base64_encode, &rfc4648_test1);
+	l_test_add("base64/rfc4648/enc2", test_base64_encode, &rfc4648_test2);
+	l_test_add("base64/rfc4648/enc3", test_base64_encode, &rfc4648_test3);
+	l_test_add("base64/rfc4648/enc4", test_base64_encode, &rfc4648_test4);
+	l_test_add("base64/rfc4648/enc5", test_base64_encode, &rfc4648_test5);
+	l_test_add("base64/rfc4648/enc6", test_base64_encode, &rfc4648_test6);
+	l_test_add("base64/rfc4648/enc7", test_base64_encode, &rfc4648_test7);
+
+	l_test_add("base64/rfc4648/dec2", test_base64_decode2, &rfc4648_test2);
+	l_test_add("base64/rfc4648/dec3", test_base64_decode2, &rfc4648_test3);
+	l_test_add("base64/rfc4648/dec4", test_base64_decode2, &rfc4648_test4);
+	l_test_add("base64/rfc4648/dec5", test_base64_decode2, &rfc4648_test5);
+	l_test_add("base64/rfc4648/dec6", test_base64_decode2, &rfc4648_test6);
+	l_test_add("base64/rfc4648/dec7", test_base64_decode2, &rfc4648_test7);
 
 	return l_test_run();
 }
