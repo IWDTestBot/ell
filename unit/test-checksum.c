@@ -166,6 +166,107 @@ static void test_updatev(const void *data)
 	l_checksum_free(checksum);
 }
 
+struct sha_test {
+	enum l_checksum_type type;
+	const char *msg;
+	const char *hash;
+};
+
+static const struct sha_test sha1_test1 = {
+	.type	= L_CHECKSUM_SHA1,
+	.msg	= "abc",
+	.hash	= "a9993e364706816aba3e25717850c26c"
+		  "9cd0d89d",
+};
+
+static const struct sha_test sha1_test2 = {
+	.type	= L_CHECKSUM_SHA1,
+	.msg	= "",
+	.hash	= "da39a3ee5e6b4b0d3255bfef95601890"
+		  "afd80709",
+};
+
+static const struct sha_test sha1_test3 = {
+	.type	= L_CHECKSUM_SHA1,
+	.msg	= "abcdbcdecdefdefgefghfghighijhijk"
+		  "ijkljklmklmnlmnomnopnopq",
+	.hash	= "84983e441c3bd26ebaae4aa1f95129e5"
+		  "e54670f1",
+};
+
+static const struct sha_test sha1_test4 = {
+	.type	= L_CHECKSUM_SHA1,
+	.msg	= "abcdefghbcdefghicdefghijdefghijk"
+		  "efghijklfghijklmghijklmnhijklmno"
+		  "ijklmnopjklmnopqklmnopqrlmnopqrs"
+		  "mnopqrstnopqrstu",
+	.hash	= "a49b2446a02c645bf419f995b6709125"
+		  "3a04a259",
+};
+
+static const struct sha_test sha224_test1 = {
+	.type	= L_CHECKSUM_SHA224,
+	.msg	= "abc",
+	.hash	= "23097d223405d8228642a477bda255b3"
+		  "2aadbce4bda0b3f7e36c9da7",
+};
+
+static const struct sha_test sha224_test2 = {
+	.type	= L_CHECKSUM_SHA224,
+	.msg	= "",
+	.hash	= "d14a028c2a3a2bc9476102bb288234c4"
+		  "15a2b01f828ea62ac5b3e42f",
+};
+
+static const struct sha_test sha224_test3 = {
+	.type	= L_CHECKSUM_SHA224,
+	.msg	= "abcdbcdecdefdefgefghfghighijhijk"
+		  "ijkljklmklmnlmnomnopnopq",
+	.hash	= "75388b16512776cc5dba5da1fd890150"
+		  "b0c6455cb4f58b1952522525",
+};
+
+static const struct sha_test sha224_test4 = {
+	.type	= L_CHECKSUM_SHA224,
+	.msg	= "abcdefghbcdefghicdefghijdefghijk"
+		  "efghijklfghijklmghijklmnhijklmno"
+		  "ijklmnopjklmnopqklmnopqrlmnopqrs"
+		  "mnopqrstnopqrstu",
+	.hash	= "c97ca9a559850ce97a04a96def6d99a9"
+		  "e0e0e2ab14e6b8df265fc0b3",
+};
+
+static void test_sha(const void *data)
+{
+	const struct sha_test *test = data;
+	size_t msg_len;
+	struct l_checksum *checksum;
+	unsigned char *digest;
+	size_t digest_len;
+	unsigned char *expected;
+	size_t expected_len;
+
+	checksum = l_checksum_new(test->type);
+	assert(checksum);
+
+	digest_len = l_checksum_digest_length(test->type);
+	digest = l_malloc(digest_len);
+
+	msg_len = strlen(test->msg);
+	l_checksum_update(checksum, test->msg, msg_len);
+
+	l_checksum_get_digest(checksum, digest, digest_len);
+
+	expected = l_util_from_hexstring(test->hash, &expected_len);
+	assert(expected);
+	assert(expected_len == digest_len);
+	assert(!memcmp(digest, expected, expected_len));
+
+	l_free(expected);
+	l_free(digest);
+	l_checksum_free(checksum);
+}
+
 struct aes_cmac_test_vector {
 	char *plaintext;
 	char *key;
@@ -241,14 +342,30 @@ int main(int argc, char *argv[])
 
 	l_test_add_func("md4-1", test_md4, L_TEST_FLAG_ALLOW_FAILURE);
 	l_test_add_func("md5-1", test_md5, L_TEST_FLAG_ALLOW_FAILURE);
-
 	l_test_add_func("sha1-1", test_sha1, L_TEST_FLAG_ALLOW_FAILURE);
+	l_test_add_func("sha256-1", test_sha256, L_TEST_FLAG_ALLOW_FAILURE);
+
 	l_test_add_func("checksum reset", test_reset,
 						L_TEST_FLAG_ALLOW_FAILURE);
 	l_test_add_func("checksum updatev", test_updatev,
 						L_TEST_FLAG_ALLOW_FAILURE);
 
-	l_test_add_func("sha256-1", test_sha256, L_TEST_FLAG_ALLOW_FAILURE);
+	l_test_add_data_func("SHA-1/1", &sha1_test1, test_sha,
+						L_TEST_FLAG_ALLOW_FAILURE);
+	l_test_add_data_func("SHA-1/2", &sha1_test2, test_sha,
+						L_TEST_FLAG_ALLOW_FAILURE);
+	l_test_add_data_func("SHA-1/3", &sha1_test3, test_sha,
+						L_TEST_FLAG_ALLOW_FAILURE);
+	l_test_add_data_func("SHA-1/4", &sha1_test4, test_sha,
+						L_TEST_FLAG_ALLOW_FAILURE);
+	l_test_add_data_func("SHA-224/1", &sha224_test1, test_sha,
+						L_TEST_FLAG_ALLOW_FAILURE);
+	l_test_add_data_func("SHA-224/2", &sha224_test2, test_sha,
+						L_TEST_FLAG_ALLOW_FAILURE);
+	l_test_add_data_func("SHA-224/3", &sha224_test3, test_sha,
+						L_TEST_FLAG_ALLOW_FAILURE);
+	l_test_add_data_func("SHA-224/4", &sha224_test4, test_sha,
+						L_TEST_FLAG_ALLOW_FAILURE);
 
 	l_test_add_data_func("aes-cmac-1", &aes_cmac_test1, test_aes_cmac,
 						L_TEST_FLAG_ALLOW_FAILURE);
