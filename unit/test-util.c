@@ -17,6 +17,76 @@
 #include <ell/ell.h>
 #include <ell/useful.h>
 
+struct oid_test {
+	size_t len;
+	unsigned char buf[9];
+	char *str;
+};
+
+static const struct oid_test oid_test1 = {
+	/* invalid */
+	0, { }, NULL,
+};
+
+static const struct oid_test oid_test2 = {
+	/* invalid */
+	1, { 0x2a }, NULL,
+};
+
+static const struct oid_test oid_test3 = {
+	/* invalid */
+	2, { 0x2a, 0x86 }, NULL,
+};
+
+static const struct oid_test oid_test4 = {
+	/* commonName */
+	3, { 0x55, 0x04, 0x03 }, "2.5.4.3",
+};
+
+static const struct oid_test oid_test5 = {
+	/* subjectKeyIdentifier */
+	3, { 0x55, 0x1d, 0x0e }, "2.5.29.14",
+};
+
+static const struct oid_test oid_test6 = {
+	/* basicConstraints */
+	3, { 0x55, 0x1d, 0x13 }, "2.5.29.19",
+};
+
+static const struct oid_test oid_test7 = {
+	/* authorityKeyIdentifier */
+	3, { 0x55, 0x1d, 0x23 }, "2.5.29.35",
+};
+
+static const struct oid_test oid_test8 = {
+	/* rsaEncryption */
+	9, { 0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x01, 0x01, 0x01 },
+	"1.2.840.113549.1.1.1",
+};
+
+static const struct oid_test oid_test9 = {
+	/* sha256WithRSAEncryption */
+	9, { 0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x01, 0x01, 0x0b },
+	"1.2.840.113549.1.1.11",
+};
+
+static void test_oidstring(const void *test_data)
+{
+	const struct oid_test *test = test_data;
+	char *str;
+
+	str = l_util_oidstring(test->buf, test->len);
+
+	if (test->str) {
+		assert(str);
+		assert(!strcmp(str, test->str));
+	} else {
+		assert(!str);
+	}
+
+	l_free(str);
+}
+
 static void test_hexstring(const void *test_data)
 {
 	unsigned char test[] = { 0x74, 0x65, 0x73, 0x74, 0x00 };
@@ -303,6 +373,16 @@ static void test_l_memcpy(const void *test_data)
 int main(int argc, char *argv[])
 {
 	l_test_init(&argc, &argv);
+
+	l_test_add("l_util_oidstring/1", test_oidstring, &oid_test1);
+	l_test_add("l_util_oidstring/2", test_oidstring, &oid_test2);
+	l_test_add("l_util_oidstring/3", test_oidstring, &oid_test3);
+	l_test_add("l_util_oidstring/4", test_oidstring, &oid_test4);
+	l_test_add("l_util_oidstring/5", test_oidstring, &oid_test5);
+	l_test_add("l_util_oidstring/6", test_oidstring, &oid_test6);
+	l_test_add("l_util_oidstring/7", test_oidstring, &oid_test7);
+	l_test_add("l_util_oidstring/8", test_oidstring, &oid_test8);
+	l_test_add("l_util_oidstring/9", test_oidstring, &oid_test9);
 
 	l_test_add("l_util_hexstring", test_hexstring, NULL);
 	l_test_add("l_util_hexstring_upper", test_hexstring_upper, NULL);
