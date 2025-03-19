@@ -67,6 +67,10 @@ static struct checksum_info checksum_algs[] = {
 	[L_CHECKSUM_SHA256] = { .name = "sha256", .digest_len = 32 },
 	[L_CHECKSUM_SHA384] = { .name = "sha384", .digest_len = 48 },
 	[L_CHECKSUM_SHA512] = { .name = "sha512", .digest_len = 64 },
+	[L_CHECKSUM_SHA3_224] = { .name = "sha3-224", .digest_len = 28 },
+	[L_CHECKSUM_SHA3_256] = { .name = "sha3-256", .digest_len = 32 },
+	[L_CHECKSUM_SHA3_384] = { .name = "sha3-384", .digest_len = 48 },
+	[L_CHECKSUM_SHA3_512] = { .name = "sha3-512", .digest_len = 64 },
 };
 
 static struct checksum_info checksum_cmac_aes_alg =
@@ -80,6 +84,10 @@ static struct checksum_info checksum_hmac_algs[] = {
 	[L_CHECKSUM_SHA256] = { .name = "hmac(sha256)", .digest_len = 32 },
 	[L_CHECKSUM_SHA384] = { .name = "hmac(sha384)", .digest_len = 48 },
 	[L_CHECKSUM_SHA512] = { .name = "hmac(sha512)", .digest_len = 64 },
+	[L_CHECKSUM_SHA3_224] = { .name = "hmac(sha3-224)", .digest_len = 28 },
+	[L_CHECKSUM_SHA3_256] = { .name = "hmac(sha3-256)", .digest_len = 32 },
+	[L_CHECKSUM_SHA3_384] = { .name = "hmac(sha3-384)", .digest_len = 48 },
+	[L_CHECKSUM_SHA3_512] = { .name = "hmac(sha3-512)", .digest_len = 64 },
 };
 
 static const struct {
