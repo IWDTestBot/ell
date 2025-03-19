@@ -334,6 +334,9 @@ static void test_aes_cmac(const void *data)
 	l_free(ct);
 }
 
+#define add_sha_test(name, data) l_test_add_data_func(name, data, \
+					test_sha, L_TEST_FLAG_ALLOW_FAILURE)
+
 int main(int argc, char *argv[])
 {
 	l_test_init(&argc, &argv);
@@ -350,22 +353,14 @@ int main(int argc, char *argv[])
 	l_test_add_func("checksum updatev", test_updatev,
 						L_TEST_FLAG_ALLOW_FAILURE);
 
-	l_test_add_data_func("SHA-1/1", &sha1_test1, test_sha,
-						L_TEST_FLAG_ALLOW_FAILURE);
-	l_test_add_data_func("SHA-1/2", &sha1_test2, test_sha,
-						L_TEST_FLAG_ALLOW_FAILURE);
-	l_test_add_data_func("SHA-1/3", &sha1_test3, test_sha,
-						L_TEST_FLAG_ALLOW_FAILURE);
-	l_test_add_data_func("SHA-1/4", &sha1_test4, test_sha,
-						L_TEST_FLAG_ALLOW_FAILURE);
-	l_test_add_data_func("SHA-224/1", &sha224_test1, test_sha,
-						L_TEST_FLAG_ALLOW_FAILURE);
-	l_test_add_data_func("SHA-224/2", &sha224_test2, test_sha,
-						L_TEST_FLAG_ALLOW_FAILURE);
-	l_test_add_data_func("SHA-224/3", &sha224_test3, test_sha,
-						L_TEST_FLAG_ALLOW_FAILURE);
-	l_test_add_data_func("SHA-224/4", &sha224_test4, test_sha,
-						L_TEST_FLAG_ALLOW_FAILURE);
+	add_sha_test("SHA-1/1", &sha1_test1);
+	add_sha_test("SHA-1/2", &sha1_test2);
+	add_sha_test("SHA-1/3", &sha1_test3);
+	add_sha_test("SHA-1/4", &sha1_test4);
+	add_sha_test("SHA-224/1", &sha224_test1);
+	add_sha_test("SHA-224/2", &sha224_test2);
+	add_sha_test("SHA-224/3", &sha224_test3);
+	add_sha_test("SHA-224/4", &sha224_test4);
 
 	l_test_add_data_func("aes-cmac-1", &aes_cmac_test1, test_aes_cmac,
 						L_TEST_FLAG_ALLOW_FAILURE);
