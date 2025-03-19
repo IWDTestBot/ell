@@ -515,6 +515,87 @@ static void test_sha(const void *data)
 	l_checksum_free(checksum);
 }
 
+struct cmac_aes_test {
+	const char *key;
+	const char *msg;
+	const char *hash;
+};
+
+/* NIST Special Publication 800-38B - D.1 AES-128 - Example 1: Mlen=0 */
+static const struct cmac_aes_test cmac_aes128_test1 = {
+	.key	= "2b7e151628aed2a6abf7158809cf4f3c",
+	.msg	= "",
+	.hash	= "bb1d6929e95937287fa37d129b756746",
+};
+
+/* NIST Special Publication 800-38B - D.1 AES-128 - Example 2: Mlen=128 */
+static const struct cmac_aes_test cmac_aes128_test2 = {
+	.key	= "2b7e151628aed2a6abf7158809cf4f3c",
+	.msg	= "6bc1bee22e409f96e93d7e117393172a",
+	.hash	= "070a16b46b4d4144f79bdd9dd04a287c",
+};
+
+/* NIST Special Publication 800-38B - D.1 AES-128 - Example 3: Mlen=320 */
+static const struct cmac_aes_test cmac_aes128_test3 = {
+	.key	= "2b7e151628aed2a6abf7158809cf4f3c",
+	.msg	= "6bc1bee22e409f96e93d7e117393172a"
+		  "ae2d8a571e03ac9c9eb76fac45af8e51"
+		  "30c81c46a35ce411",
+	.hash	= "dfa66747de9ae63030ca32611497c827",
+};
+
+/* NIST Special Publication 800-38B - D.1 AES-128 - Example 4: Mlen=512 */
+static const struct cmac_aes_test cmac_aes128_test4 = {
+	.key	= "2b7e151628aed2a6abf7158809cf4f3c",
+	.msg	= "6bc1bee22e409f96e93d7e117393172a"
+		  "ae2d8a571e03ac9c9eb76fac45af8e51"
+		  "30c81c46a35ce411e5fbc1191a0a52ef"
+		  "f69f2445df4f9b17ad2b417be66c3710",
+	.hash	= "51f0bebf7e3b9d92fc49741779363cfe",
+};
+
+static void test_cmac_aes(const void *data)
+{
+	const struct cmac_aes_test *test = data;
+	unsigned char *key;
+	size_t key_len;
+	unsigned char *msg;
+	size_t msg_len;
+	struct l_checksum *checksum;
+	unsigned char *digest;
+	size_t digest_len;
+	unsigned char *expected;
+	size_t expected_len;
+
+	key = l_util_from_hexstring(test->key, &key_len);
+	assert(key);
+
+	checksum = l_checksum_new_cmac_aes(key, key_len);
+	assert(checksum);
+
+	digest_len = 16;
+	digest = l_malloc(digest_len);
+
+	if (strlen(test->msg) > 0) {
+		msg = l_util_from_hexstring(test->msg, &msg_len);
+		assert(msg);
+
+		l_checksum_update(checksum, msg, msg_len);
+	}
+
+	l_checksum_get_digest(checksum, digest, digest_len);
+
+	expected = l_util_from_hexstring(test->hash, &expected_len);
+	assert(expected);
+	assert(expected_len == digest_len);
+	assert(!memcmp(digest, expected, expected_len));
+
+	l_free(expected);
+	l_free(digest);
+	l_checksum_free(checksum);
+	l_free(key);
+}
+
 struct aes_cmac_test_vector {
 	char *plaintext;
 	char *key;
@@ -585,6 +666,9 @@ static void test_aes_cmac(const void *data)
 #define add_sha_test(name, data) l_test_add_data_func(name, data, \
 					test_sha, L_TEST_FLAG_ALLOW_FAILURE)
 
+#define add_cmac_aes_test(name, data) l_test_add_data_func(name, data, \
+					test_cmac_aes, L_TEST_FLAG_ALLOW_FAILURE)
+
 int main(int argc, char *argv[])
 {
 	l_test_init(&argc, &argv);
@@ -637,6 +721,11 @@ int main(int argc, char *argv[])
 	add_sha_test("SHA-3-512/2", &sha3_512_test2);
 	add_sha_test("SHA-3-512/3", &sha3_512_test3);
 	add_sha_test("SHA-3-512/4", &sha3_512_test4);
+
+	add_cmac_aes_test("CMAC-AES-128/1", &cmac_aes128_test1);
+	add_cmac_aes_test("CMAC-AES-128/2", &cmac_aes128_test2);
+	add_cmac_aes_test("CMAC-AES-128/3", &cmac_aes128_test3);
+	add_cmac_aes_test("CMAC-AES-128/4", &cmac_aes128_test4);
 
 	l_test_add_data_func("aes-cmac-1", &aes_cmac_test1, test_aes_cmac,
 						L_TEST_FLAG_ALLOW_FAILURE);
