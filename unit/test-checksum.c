@@ -344,6 +344,146 @@ static const struct sha_test sha512_test4 = {
 		  "c7d329eeb6dd26545e96e55b874be909",
 };
 
+static const struct sha_test sha3_224_test1 = {
+	.type	= L_CHECKSUM_SHA3_224,
+	.msg	= "abc",
+	.hash	= "e642824c3f8cf24ad09234ee7d3c766f"
+		  "c9a3a5168d0c94ad73b46fdf",
+};
+
+static const struct sha_test sha3_224_test2 = {
+	.type	= L_CHECKSUM_SHA3_224,
+	.msg	= "",
+	.hash	= "6b4e03423667dbb73b6e15454f0eb1ab"
+		  "d4597f9a1b078e3f5b5a6bc7",
+};
+
+static const struct sha_test sha3_224_test3 = {
+	.type	= L_CHECKSUM_SHA3_224,
+	.msg	= "abcdbcdecdefdefgefghfghighijhijk"
+		  "ijkljklmklmnlmnomnopnopq",
+	.hash	= "8a24108b154ada21c9fd5574494479ba"
+		  "5c7e7ab76ef264ead0fcce33",
+};
+
+static const struct sha_test sha3_224_test4 = {
+	.type	= L_CHECKSUM_SHA3_224,
+	.msg	= "abcdefghbcdefghicdefghijdefghijk"
+		  "efghijklfghijklmghijklmnhijklmno"
+		  "ijklmnopjklmnopqklmnopqrlmnopqrs"
+		  "mnopqrstnopqrstu",
+	.hash	= "543e6868e1666c1a643630df77367ae5"
+		  "a62a85070a51c14cbf665cbc",
+};
+
+static const struct sha_test sha3_256_test1 = {
+	.type	= L_CHECKSUM_SHA3_256,
+	.msg	= "abc",
+	.hash	= "3a985da74fe225b2045c172d6bd390bd"
+		  "855f086e3e9d525b46bfe24511431532",
+};
+
+static const struct sha_test sha3_256_test2 = {
+	.type	= L_CHECKSUM_SHA3_256,
+	.msg	= "",
+	.hash	= "a7ffc6f8bf1ed76651c14756a061d662"
+		  "f580ff4de43b49fa82d80a4b80f8434a",
+};
+
+static const struct sha_test sha3_256_test3 = {
+	.type	= L_CHECKSUM_SHA3_256,
+	.msg	= "abcdbcdecdefdefgefghfghighijhijk"
+		  "ijkljklmklmnlmnomnopnopq",
+	.hash	= "41c0dba2a9d6240849100376a8235e2c"
+		  "82e1b9998a999e21db32dd97496d3376",
+};
+
+static const struct sha_test sha3_256_test4 = {
+	.type	= L_CHECKSUM_SHA3_256,
+	.msg	= "abcdefghbcdefghicdefghijdefghijk"
+		  "efghijklfghijklmghijklmnhijklmno"
+		  "ijklmnopjklmnopqklmnopqrlmnopqrs"
+		  "mnopqrstnopqrstu",
+	.hash	= "916f6061fe879741ca6469b43971dfdb"
+		  "28b1a32dc36cb3254e812be27aad1d18",
+};
+
+static const struct sha_test sha3_384_test1 = {
+	.type	= L_CHECKSUM_SHA3_384,
+	.msg	= "abc",
+	.hash	= "ec01498288516fc926459f58e2c6ad8d"
+		  "f9b473cb0fc08c2596da7cf0e49be4b2"
+		  "98d88cea927ac7f539f1edf228376d25",
+};
+
+static const struct sha_test sha3_384_test2 = {
+	.type	= L_CHECKSUM_SHA3_384,
+	.msg	= "",
+	.hash	= "0c63a75b845e4f7d01107d852e4c2485"
+		  "c51a50aaaa94fc61995e71bbee983a2a"
+		  "c3713831264adb47fb6bd1e058d5f004",
+};
+
+static const struct sha_test sha3_384_test3 = {
+	.type	= L_CHECKSUM_SHA3_384,
+	.msg	= "abcdbcdecdefdefgefghfghighijhijk"
+		  "ijkljklmklmnlmnomnopnopq",
+	.hash	= "991c665755eb3a4b6bbdfb75c78a492e"
+		  "8c56a22c5c4d7e429bfdbc32b9d4ad5a"
+		  "a04a1f076e62fea19eef51acd0657c22",
+};
+
+static const struct sha_test sha3_384_test4 = {
+	.type	= L_CHECKSUM_SHA3_384,
+	.msg	= "abcdefghbcdefghicdefghijdefghijk"
+		  "efghijklfghijklmghijklmnhijklmno"
+		  "ijklmnopjklmnopqklmnopqrlmnopqrs"
+		  "mnopqrstnopqrstu",
+	.hash	= "79407d3b5916b59c3e30b09822974791"
+		  "c313fb9ecc849e406f23592d04f625dc"
+		  "8c709b98b43b3852b337216179aa7fc7",
+};
+
+static const struct sha_test sha3_512_test1 = {
+	.type	= L_CHECKSUM_SHA3_512,
+	.msg	= "abc",
+	.hash	= "b751850b1a57168a5693cd924b6b096e"
+		  "08f621827444f70d884f5d0240d2712e"
+		  "10e116e9192af3c91a7ec57647e39340"
+		  "57340b4cf408d5a56592f8274eec53f0",
+};
+
+static const struct sha_test sha3_512_test2 = {
+	.type	= L_CHECKSUM_SHA3_512,
+	.msg	= "",
+	.hash	= "a69f73cca23a9ac5c8b567dc185a756e"
+		  "97c982164fe25859e0d1dcc1475c80a6"
+		  "15b2123af1f5f94c11e3e9402c3ac558"
+		  "f500199d95b6d3e301758586281dcd26",
+};
+
+static const struct sha_test sha3_512_test3 = {
+	.type	= L_CHECKSUM_SHA3_512,
+	.msg	= "abcdbcdecdefdefgefghfghighijhijk"
+		  "ijkljklmklmnlmnomnopnopq",
+	.hash	= "04a371e84ecfb5b8b77cb48610fca818"
+		  "2dd457ce6f326a0fd3d7ec2f1e91636d"
+		  "ee691fbe0c985302ba1b0d8dc78c0863"
+		  "46b533b49c030d99a27daf1139d6e75e",
+};
+
+static const struct sha_test sha3_512_test4 = {
+	.type	= L_CHECKSUM_SHA3_512,
+	.msg	= "abcdefghbcdefghicdefghijdefghijk"
+		  "efghijklfghijklmghijklmnhijklmno"
+		  "ijklmnopjklmnopqklmnopqrlmnopqrs"
+		  "mnopqrstnopqrstu",
+	.hash	= "afebb2ef542e6579c50cad06d2e578f9"
+		  "f8dd6881d7dc824d26360feebf18a4fa"
+		  "73e3261122948efcfd492e74e82e2189"
+		  "ed0fb440d187f382270cb455f21dd185",
+};
+
 static void test_sha(const void *data)
 {
 	const struct sha_test *test = data;
@@ -481,6 +621,22 @@ int main(int argc, char *argv[])
 	add_sha_test("SHA-512/2", &sha512_test2);
 	add_sha_test("SHA-512/3", &sha512_test3);
 	add_sha_test("SHA-512/4", &sha512_test4);
+	add_sha_test("SHA-3-224/1", &sha3_224_test1);
+	add_sha_test("SHA-3-224/2", &sha3_224_test2);
+	add_sha_test("SHA-3-224/3", &sha3_224_test3);
+	add_sha_test("SHA-3-224/4", &sha3_224_test4);
+	add_sha_test("SHA-3-256/1", &sha3_256_test1);
+	add_sha_test("SHA-3-256/2", &sha3_256_test2);
+	add_sha_test("SHA-3-256/3", &sha3_256_test3);
+	add_sha_test("SHA-3-256/4", &sha3_256_test4);
+	add_sha_test("SHA-3-384/1", &sha3_384_test1);
+	add_sha_test("SHA-3-384/2", &sha3_384_test2);
+	add_sha_test("SHA-3-384/3", &sha3_384_test3);
+	add_sha_test("SHA-3-384/4", &sha3_384_test4);
+	add_sha_test("SHA-3-512/1", &sha3_512_test1);
+	add_sha_test("SHA-3-512/2", &sha3_512_test2);
+	add_sha_test("SHA-3-512/3", &sha3_512_test3);
+	add_sha_test("SHA-3-512/4", &sha3_512_test4);
 
 	l_test_add_data_func("aes-cmac-1", &aes_cmac_test1, test_aes_cmac,
 						L_TEST_FLAG_ALLOW_FAILURE);
