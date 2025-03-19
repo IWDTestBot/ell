@@ -554,6 +554,20 @@ static const struct cmac_aes_test cmac_aes128_test4 = {
 	.hash	= "51f0bebf7e3b9d92fc49741779363cfe",
 };
 
+/* Bluetooth Mesh Profile - 8.1.1 s1 SALT generation function */
+static const struct cmac_aes_test cmac_aes128_btmesh1 = {
+	.key	= "00000000000000000000000000000000",
+	.msg	= "74657374",
+	.hash	= "b73cefbd641ef2ea598c2b6efb62f79c",
+};
+
+/* Bluetooth Mesh Profile - 8.1.3 k2 function (master) */
+static const struct cmac_aes_test cmac_aes128_btmesh2 = {
+	.key	= "4f90480c1871bfbffd16971f4d8d10b1",
+	.msg	= "f7a2a44f8e8a8029064f173ddc1e2b00",
+	.hash	= "2ea6467aa3378c4c545eda62935b9b86",
+};
+
 static void test_cmac_aes(const void *data)
 {
 	const struct cmac_aes_test *test = data;
@@ -594,73 +608,6 @@ static void test_cmac_aes(const void *data)
 	l_free(digest);
 	l_checksum_free(checksum);
 	l_free(key);
-}
-
-struct aes_cmac_test_vector {
-	char *plaintext;
-	char *key;
-	char *ciphertext;
-};
-
-/* Hash AES_CMAC tests based on Bluetooth Mesh published sample data */
-static const struct aes_cmac_test_vector aes_cmac_test1 = {
-	.plaintext = "74657374",
-	.key = "00000000000000000000000000000000",
-	.ciphertext = "b73cefbd641ef2ea598c2b6efb62f79c",
-};
-
-static const struct aes_cmac_test_vector aes_cmac_test2 = {
-	.plaintext = "f7a2a44f8e8a8029064f173ddc1e2b00",
-	.key = "4f90480c1871bfbffd16971f4d8d10b1",
-	.ciphertext = "2ea6467aa3378c4c545eda62935b9b86",
-};
-
-static void test_aes_cmac(const void *data)
-{
-	struct l_checksum *checksum;
-	char *encbuf;
-	size_t encbuflen;
-	char *decbuf;
-	size_t decbuflen;
-	int r;
-	bool success;
-	const struct aes_cmac_test_vector *tv = data;
-
-	size_t ptlen;
-	uint8_t *pt = l_util_from_hexstring(tv->plaintext, &ptlen);
-	size_t keylen;
-	uint8_t *key = l_util_from_hexstring(tv->key, &keylen);
-	size_t ctlen;
-	uint8_t *ct = l_util_from_hexstring(tv->ciphertext, &ctlen);
-
-	assert(pt);
-	assert(ct);
-	assert(key);
-
-	encbuflen = ctlen;
-	encbuf = alloca(encbuflen);
-	memset(encbuf, 0, encbuflen);
-	decbuflen = ptlen;
-	decbuf = alloca(decbuflen);
-	memset(decbuf, 0, decbuflen);
-
-	checksum = l_checksum_new_cmac_aes(key, keylen);
-	assert(checksum);
-
-	success = l_checksum_update(checksum, pt, ptlen);
-	assert(success);
-
-	ctlen = l_checksum_get_digest(checksum, encbuf, encbuflen);
-	assert(ctlen == encbuflen);
-
-	r = memcmp(encbuf, ct, ctlen);
-	assert(!r);
-
-	l_checksum_free(checksum);
-
-	l_free(pt);
-	l_free(key);
-	l_free(ct);
 }
 
 #define add_sha_test(name, data) l_test_add_data_func(name, data, \
@@ -727,10 +674,8 @@ int main(int argc, char *argv[])
 	add_cmac_aes_test("CMAC-AES-128/3", &cmac_aes128_test3);
 	add_cmac_aes_test("CMAC-AES-128/4", &cmac_aes128_test4);
 
-	l_test_add_data_func("aes-cmac-1", &aes_cmac_test1, test_aes_cmac,
-						L_TEST_FLAG_ALLOW_FAILURE);
-	l_test_add_data_func("aes-cmac-2", &aes_cmac_test2, test_aes_cmac,
-						L_TEST_FLAG_ALLOW_FAILURE);
+	add_cmac_aes_test("CMAC-AES-128/BluetoothMesh1", &cmac_aes128_btmesh1);
+	add_cmac_aes_test("CMAC-AES-128/BluetoothMesh2", &cmac_aes128_btmesh2);
 
 	return l_test_run();
 }
