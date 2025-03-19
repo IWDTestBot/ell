@@ -916,6 +916,80 @@ static const struct cmac_aes_test cmac_aes128_test4 = {
 	.hash	= "51f0bebf7e3b9d92fc49741779363cfe",
 };
 
+/* NIST Special Publication 800-38B - D.2 AES-192 - Example 5: Mlen=0 */
+static const struct cmac_aes_test cmac_aes192_test5 = {
+	.key	= "8e73b0f7da0e6452c810f32b809079e5"
+		  "62f8ead2522c6b7b",
+	.msg	= "",
+	.hash	= "d17ddf46adaacde531cac483de7a9367",
+};
+
+/* NIST Special Publication 800-38B - D.2 AES-192 - Example 6: Mlen=128 */
+static const struct cmac_aes_test cmac_aes192_test6 = {
+	.key	= "8e73b0f7da0e6452c810f32b809079e5"
+		  "62f8ead2522c6b7b",
+	.msg	= "6bc1bee22e409f96e93d7e117393172a",
+	.hash	= "9e99a7bf31e710900662f65e617c5184",
+};
+
+/* NIST Special Publication 800-38B - D.2 AES-192 - Example 7: Mlen=320 */
+static const struct cmac_aes_test cmac_aes192_test7 = {
+	.key	= "8e73b0f7da0e6452c810f32b809079e5"
+		  "62f8ead2522c6b7b",
+	.msg	= "6bc1bee22e409f96e93d7e117393172a"
+		  "ae2d8a571e03ac9c9eb76fac45af8e51"
+		  "30c81c46a35ce411",
+	.hash	= "8a1de5be2eb31aad089a82e6ee908b0e",
+};
+
+/* NIST Special Publication 800-38B - D.2 AES-192 - Example 8: Mlen=512 */
+static const struct cmac_aes_test cmac_aes192_test8 = {
+	.key	= "8e73b0f7da0e6452c810f32b809079e5"
+		  "62f8ead2522c6b7b",
+	.msg	= "6bc1bee22e409f96e93d7e117393172a"
+		  "ae2d8a571e03ac9c9eb76fac45af8e51"
+		  "30c81c46a35ce411e5fbc1191a0a52ef"
+		  "f69f2445df4f9b17ad2b417be66c3710",
+	.hash	= "a1d5df0eed790f794d77589659f39a11",
+};
+
+/* NIST Special Publication 800-38B - D.3 AES-256 - Example 9: Mlen=0 */
+static const struct cmac_aes_test cmac_aes256_test9 = {
+	.key	= "603deb1015ca71be2b73aef0857d7781"
+		  "1f352c073b6108d72d9810a30914dff4",
+	.msg	= "",
+	.hash	= "028962f61b7bf89efc6b551f4667d983",
+};
+
+/* NIST Special Publication 800-38B - D.3 AES-256 - Example 10: Mlen=128 */
+static const struct cmac_aes_test cmac_aes256_test10 = {
+	.key	= "603deb1015ca71be2b73aef0857d7781"
+		  "1f352c073b6108d72d9810a30914dff4",
+	.msg	= "6bc1bee22e409f96e93d7e117393172a",
+	.hash	= "28a7023f452e8f82bd4bf28d8c37c35c",
+};
+
+/* NIST Special Publication 800-38B - D.3 AES-256 - Example 11: Mlen=320 */
+static const struct cmac_aes_test cmac_aes256_test11 = {
+	.key	= "603deb1015ca71be2b73aef0857d7781"
+		  "1f352c073b6108d72d9810a30914dff4",
+	.msg	= "6bc1bee22e409f96e93d7e117393172a"
+		  "ae2d8a571e03ac9c9eb76fac45af8e51"
+		  "30c81c46a35ce411",
+	.hash	= "aaf3d8f1de5640c232f5b169b9c911e6",
+};
+
+/* NIST Special Publication 800-38B - D.3 AES-256 - Example 12: Mlen=512 */
+static const struct cmac_aes_test cmac_aes256_test12 = {
+	.key	= "603deb1015ca71be2b73aef0857d7781"
+		  "1f352c073b6108d72d9810a30914dff4",
+	.msg	= "6bc1bee22e409f96e93d7e117393172a"
+		  "ae2d8a571e03ac9c9eb76fac45af8e51"
+		  "30c81c46a35ce411e5fbc1191a0a52ef"
+		  "f69f2445df4f9b17ad2b417be66c3710",
+	.hash	= "e1992190549f6ed5696a2c056c315410",
+};
+
 /* Bluetooth Mesh Profile - 8.1.1 s1 SALT generation function */
 static const struct cmac_aes_test cmac_aes128_btmesh1 = {
 	.key	= "00000000000000000000000000000000",
@@ -1070,6 +1144,14 @@ int main(int argc, char *argv[])
 	add_cmac_aes_test("CMAC-AES-128/2", &cmac_aes128_test2);
 	add_cmac_aes_test("CMAC-AES-128/3", &cmac_aes128_test3);
 	add_cmac_aes_test("CMAC-AES-128/4", &cmac_aes128_test4);
+	add_cmac_aes_test("CMAC-AES-192/5", &cmac_aes192_test5);
+	add_cmac_aes_test("CMAC-AES-192/6", &cmac_aes192_test6);
+	add_cmac_aes_test("CMAC-AES-192/7", &cmac_aes192_test7);
+	add_cmac_aes_test("CMAC-AES-192/8", &cmac_aes192_test8);
+	add_cmac_aes_test("CMAC-AES-256/9", &cmac_aes256_test9);
+	add_cmac_aes_test("CMAC-AES-256/10", &cmac_aes256_test10);
+	add_cmac_aes_test("CMAC-AES-256/11", &cmac_aes256_test11);
+	add_cmac_aes_test("CMAC-AES-256/12", &cmac_aes256_test12);
 
 	add_cmac_aes_test("CMAC-AES-128/BluetoothMesh1", &cmac_aes128_btmesh1);
 	add_cmac_aes_test("CMAC-AES-128/BluetoothMesh2", &cmac_aes128_btmesh2);
