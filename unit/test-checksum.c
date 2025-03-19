@@ -551,6 +551,42 @@ static const struct hmac_sha_test hmac_md5_test3 = {
 	.hash	= "56be34521d144c88dbb8c733f0e8b3f6",
 };
 
+/* RFC 4231 - Section 4.2. Test Case 1 */
+#define HMAC_SHA_TEST1	.key	= "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b"	\
+				  "0b0b0b0b",				\
+			.data	= "4869205468657265"
+
+static const struct hmac_sha_test hmac_sha224_test1 = {
+	HMAC_SHA_TEST1,
+	.type	= L_CHECKSUM_SHA224,
+	.hash	= "896fb1128abbdf196832107cd49df33f"
+		  "47b4b1169912ba4f53684b22",
+};
+
+static const struct hmac_sha_test hmac_sha256_test1 = {
+	HMAC_SHA_TEST1,
+	.type	= L_CHECKSUM_SHA256,
+	.hash	= "b0344c61d8db38535ca8afceaf0bf12b"
+		  "881dc200c9833da726e9376c2e32cff7",
+};
+
+static const struct hmac_sha_test hmac_sha384_test1 = {
+	HMAC_SHA_TEST1,
+	.type	= L_CHECKSUM_SHA384,
+	.hash	= "afd03944d84895626b0825f4ab46907f"
+		  "15f9dadbe4101ec682aa034c7cebc59c"
+		  "faea9ea9076ede7f4af152e8b2fa9cb6",
+};
+
+static const struct hmac_sha_test hmac_sha512_test1 = {
+	HMAC_SHA_TEST1,
+	.type	= L_CHECKSUM_SHA512,
+	.hash	= "87aa7cdea5ef619d4ff0b4241a1d6cb0"
+		  "2379f4e2ce4ec2787ad0b30545e17cde"
+		  "daa833b7d6b8a702038b274eaea3f4e4"
+		  "be9d914eeb61f1702e696c203a126854",
+};
+
 /* RFC 4231 - Section 4.3. Test Case 2 */
 #define HMAC_SHA_TEST2	.key	= "4a656665",				\
 			.data	= "7768617420646f2079612077616e7420"	\
@@ -1001,24 +1037,28 @@ int main(int argc, char *argv[])
 	add_hmac_sha_test("HMAC-MD5/1", &hmac_md5_test1);
 	add_hmac_sha_test("HMAC-MD5/2", &hmac_md5_test2);
 	add_hmac_sha_test("HMAC-MD5/3", &hmac_md5_test3);
+	add_hmac_sha_test("HMAC-SHA-224/1", &hmac_sha224_test1);
 	add_hmac_sha_test("HMAC-SHA-224/2", &hmac_sha224_test2);
 	add_hmac_sha_test("HMAC-SHA-224/3", &hmac_sha224_test3);
 	add_hmac_sha_test("HMAC-SHA-224/4", &hmac_sha224_test4);
 	add_hmac_sha_test("HMAC-SHA-224/5", &hmac_sha224_test5);
 	add_hmac_sha_test("HMAC-SHA-224/6", &hmac_sha224_test6);
 	add_hmac_sha_test("HMAC-SHA-224/7", &hmac_sha224_test7);
+	add_hmac_sha_test("HMAC-SHA-256/1", &hmac_sha256_test1);
 	add_hmac_sha_test("HMAC-SHA-256/2", &hmac_sha256_test2);
 	add_hmac_sha_test("HMAC-SHA-256/3", &hmac_sha256_test3);
 	add_hmac_sha_test("HMAC-SHA-256/4", &hmac_sha256_test4);
 	add_hmac_sha_test("HMAC-SHA-256/5", &hmac_sha256_test5);
 	add_hmac_sha_test("HMAC-SHA-256/6", &hmac_sha256_test6);
 	add_hmac_sha_test("HMAC-SHA-256/7", &hmac_sha256_test7);
+	add_hmac_sha_test("HMAC-SHA-384/1", &hmac_sha384_test1);
 	add_hmac_sha_test("HMAC-SHA-384/2", &hmac_sha384_test2);
 	add_hmac_sha_test("HMAC-SHA-384/3", &hmac_sha384_test3);
 	add_hmac_sha_test("HMAC-SHA-384/4", &hmac_sha384_test4);
 	add_hmac_sha_test("HMAC-SHA-384/5", &hmac_sha384_test5);
 	add_hmac_sha_test("HMAC-SHA-384/6", &hmac_sha384_test6);
 	add_hmac_sha_test("HMAC-SHA-384/7", &hmac_sha384_test7);
+	add_hmac_sha_test("HMAC-SHA-512/1", &hmac_sha512_test1);
 	add_hmac_sha_test("HMAC-SHA-512/2", &hmac_sha512_test2);
 	add_hmac_sha_test("HMAC-SHA-512/3", &hmac_sha512_test3);
 	add_hmac_sha_test("HMAC-SHA-512/4", &hmac_sha512_test4);
