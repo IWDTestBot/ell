@@ -523,6 +523,34 @@ struct hmac_sha_test {
 	size_t h_len;
 };
 
+/* RFC 2104 - Appendix -- Sample Code - Test 1 */
+static const struct hmac_sha_test hmac_md5_test1 = {
+	.key	= "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
+	.data	= "4869205468657265",
+	.type	= L_CHECKSUM_MD5,
+	.hash	= "9294727a3638bb1c13f48ef8158bfc9d",
+};
+
+/* RFC 2104 - Appendix -- Sample Code - Test 2 */
+static const struct hmac_sha_test hmac_md5_test2 = {
+	.key	= "4a656665",
+	.data	= "7768617420646f2079612077616e7420"
+		  "666f72206e6f7468696e673f",
+	.type	= L_CHECKSUM_MD5,
+	.hash	= "750c783e6ab0b503eaa86e310a5db738",
+};
+
+/* RFC 2104 - Appendix -- Sample Code - Test 3 */
+static const struct hmac_sha_test hmac_md5_test3 = {
+	.key	= "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+	.data	= "dddddddddddddddddddddddddddddddd"
+		  "dddddddddddddddddddddddddddddddd"
+		  "dddddddddddddddddddddddddddddddd"
+		  "dddd",
+	.type	= L_CHECKSUM_MD5,
+	.hash	= "56be34521d144c88dbb8c733f0e8b3f6",
+};
+
 /* RFC 4231 - Section 4.3. Test Case 2 */
 #define HMAC_SHA_TEST2	.key	= "4a656665",				\
 			.data	= "7768617420646f2079612077616e7420"	\
@@ -970,6 +998,9 @@ int main(int argc, char *argv[])
 	add_sha_test("SHA-3-512/3", &sha3_512_test3);
 	add_sha_test("SHA-3-512/4", &sha3_512_test4);
 
+	add_hmac_sha_test("HMAC-MD5/1", &hmac_md5_test1);
+	add_hmac_sha_test("HMAC-MD5/2", &hmac_md5_test2);
+	add_hmac_sha_test("HMAC-MD5/3", &hmac_md5_test3);
 	add_hmac_sha_test("HMAC-SHA-224/2", &hmac_sha224_test2);
 	add_hmac_sha_test("HMAC-SHA-224/3", &hmac_sha224_test3);
 	add_hmac_sha_test("HMAC-SHA-224/4", &hmac_sha224_test4);
