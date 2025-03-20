@@ -595,6 +595,24 @@ static const struct cipher_test rc2_test3 = {
 	.ciphertext	= "2269552ab0f85ca6",
 };
 
+static const struct cipher_test des_test1 = {
+	.type		= L_CIPHER_DES,
+	.key		= "0E329232EA6D0D73",
+	.plaintext	= "8787878787878787",
+	.ciphertext	= "0000000000000000",
+};
+
+static const struct cipher_test des_test2 = {
+	.type		= L_CIPHER_DES,
+	.key		= "0E329232EA6D0D73",
+	.plaintext	= "596F7572206C6970732061726520736D"
+			  "6F6F74686572207468616E2076617365"
+			  "6C696E650D0A0000",
+	.ciphertext	= "C0999FDDE378D7ED727DA00BCA5A84EE"
+			  "47F269A4D6438190D9D52F78F5358499"
+			  "828AC9B453E0E653",
+};
+
 #define add_encrypt_test(name, data) l_test_add_data_func(name, data, \
 					test_encrypt, L_TEST_FLAG_ALLOW_FAILURE)
 #define add_decrypt_test(name, data) l_test_add_data_func(name, data, \
@@ -637,6 +655,11 @@ int main(int argc, char *argv[])
 	add_decrypt_test("RC2/decrypt/test 2", &rc2_test2);
 	add_encrypt_test("RC2/encrypt/test 3", &rc2_test3);
 	add_decrypt_test("RC2/decrypt/test 3", &rc2_test3);
+
+	add_encrypt_test("DES/encrypt/test 1", &des_test1);
+	add_decrypt_test("DES/decrypt/test 1", &des_test1);
+	add_encrypt_test("DES/encrypt/test 2", &des_test2);
+	add_decrypt_test("DES/decrypt/test 2", &des_test2);
 
 	add_encrypt_test("AES-128/encrypt/NIST", &ecb_aes128_nist);
 	add_decrypt_test("AES-128/decrypt/NIST", &ecb_aes128_nist);
