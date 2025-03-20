@@ -89,60 +89,6 @@ static void test_aes_ctr(const void *data)
 	l_cipher_free(cipher);
 }
 
-static void test_arc4(const void *data)
-{
-	struct l_cipher *cipher;
-	char buf[256];
-	int r;
-
-	static const unsigned char expect_plaintext[] = {
-		0xbb, 0xf3, 0x16, 0xe8, 0xd9, 0x40, 0xaf, 0x0a, 0xd3,
-	};
-	static const unsigned char expect_pedia[] = {
-		0x10, 0x21, 0xbf, 0x04, 0x20,
-	};
-	static const unsigned char expect_attack[] = {
-		0x45, 0xa0, 0x1f, 0x64, 0x5f, 0xc3, 0x5b, 0x38, 0x35, 0x52,
-		0x54, 0x4b, 0x9b, 0xf5,
-	};
-
-	assert(l_cipher_is_supported(L_CIPHER_ARC4));
-
-	cipher = l_cipher_new(L_CIPHER_ARC4, "Key", 3);
-	assert(cipher);
-	l_cipher_encrypt(cipher, "Plaintext", buf, 9);
-	assert(!memcmp(buf, expect_plaintext, 9));
-	l_cipher_free(cipher);
-
-	cipher = l_cipher_new(L_CIPHER_ARC4, "Wiki", 4);
-	assert(cipher);
-	l_cipher_encrypt(cipher, "pedia", buf, 5);
-	assert(!memcmp(buf, expect_pedia, 5));
-	l_cipher_free(cipher);
-
-	cipher = l_cipher_new(L_CIPHER_ARC4, "Secret", 6);
-	assert(cipher);
-	l_cipher_encrypt(cipher, "Attack at dawn", buf, 14);
-	assert(!memcmp(buf, expect_attack, 14));
-	l_cipher_free(cipher);
-
-	cipher = l_cipher_new(L_CIPHER_ARC4, KEY_STR, KEY_LEN);
-	assert(cipher);
-
-	memcpy(buf, FIXED_STR, FIXED_LEN);
-
-	l_cipher_encrypt(cipher, buf, buf, FIXED_LEN);
-
-	r = memcmp(buf, FIXED_STR, FIXED_LEN);
-	assert(r);
-
-	l_cipher_decrypt(cipher, buf, buf, FIXED_LEN);
-	l_cipher_free(cipher);
-
-	r = memcmp(buf, FIXED_STR, FIXED_LEN);
-	assert(!r);
-}
-
 struct cipher_test {
 	enum l_cipher_type type;
 	const char *key;
@@ -605,6 +551,28 @@ static void test_aead(const void *data)
 	l_free(tag);
 }
 
+/* https://en.wikipedia.org/wiki/RC4 */
+static const struct cipher_test arc4_test1 = {
+	.type		= L_CIPHER_ARC4,
+	.key		= "4B6579",			/* "Key" */
+	.plaintext	= "506C61696E74657874",		/* "Plaintext" */
+	.ciphertext	= "BBF316E8D940AF0AD3",
+};
+
+static const struct cipher_test arc4_test2 = {
+	.type		= L_CIPHER_ARC4,
+	.key		= "57696B69",			/* "Wiki" */
+	.plaintext	= "7065646961",			/* "pedia" */
+	.ciphertext	= "1021BF0420",
+};
+
+static const struct cipher_test arc4_test3 = {
+	.type		= L_CIPHER_ARC4,
+	.key		= "536563726574",		   /* "Secret" */
+	.plaintext	= "41747461636B206174206461776E",  /* "Attack at .." */
+	.ciphertext	= "45A01F645FC35B383552544B9BF5",
+};
+
 /* RFC2268 Section 5 (where Effective key length == 8 * Key length) */
 static const struct cipher_test rc2_test1 = {
 	.type		= L_CIPHER_RC2_CBC,
@@ -644,8 +612,6 @@ int main(int argc, char *argv[])
 	if (l_cipher_is_supported(L_CIPHER_AES_CTR))
 		l_test_add("aes_ctr", test_aes_ctr, NULL);
 
-	l_test_add("arc4", test_arc4, NULL);
-
 	if (l_aead_cipher_is_supported(L_AEAD_CIPHER_AES_CCM)) {
 		l_test_add("aes_ccm long nonce", test_aead, &ccm_long_nonce);
 		l_test_add("aes_ccm short nonce", test_aead, &ccm_short_nonce);
@@ -660,6 +626,13 @@ int main(int argc, char *argv[])
 		l_test_add("aes_gcm test 5", test_aead, &gcm_test5);
 		l_test_add("aes_gcm test 6", test_aead, &gcm_test6);
 	}
+
+	add_encrypt_test("ARC4/encrypt/test 1", &arc4_test1);
+	add_decrypt_test("ARC4/decrypt/test 1", &arc4_test1);
+	add_encrypt_test("ARC4/encrypt/test 2", &arc4_test2);
+	add_decrypt_test("ARC4/decrypt/test 2", &arc4_test2);
+	add_encrypt_test("ARC4/encrypt/test 3", &arc4_test3);
+	add_decrypt_test("ARC4/decrypt/test 3", &arc4_test3);
 
 	add_encrypt_test("RC2/encrypt/test 1", &rc2_test1);
 	add_decrypt_test("RC2/decrypt/test 1", &rc2_test1);
