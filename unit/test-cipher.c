@@ -143,6 +143,132 @@ static void test_arc4(const void *data)
 	assert(!r);
 }
 
+struct cipher_test {
+	enum l_cipher_type type;
+	const char *key;
+	const char *plaintext;
+	const char *ciphertext;
+};
+
+static const struct cipher_test ecb_aes128_nist = {
+	.type		= L_CIPHER_AES,
+	.key		= "2B7E151628AED2A6ABF7158809CF4F3C",
+	.plaintext	= "6BC1BEE22E409F96E93D7E117393172A"
+			  "AE2D8A571E03AC9C9EB76FAC45AF8E51"
+			  "30C81C46A35CE411E5FBC1191A0A52EF"
+			  "F69F2445DF4F9B17AD2B417BE66C3710",
+	.ciphertext	= "3AD77BB40D7A3660A89ECAF32466EF97"
+			  "F5D3D58503B9699DE785895A96FDBAAF"
+			  "43B1CD7F598ECE23881B00E3ED030688"
+			  "7B0C785E27E8AD3F8223207104725DD4",
+};
+
+static const struct cipher_test ecb_aes192_nist = {
+	.type		= L_CIPHER_AES,
+	.key		= "8E73B0F7DA0E6452C810F32B809079E5"
+			  "62F8EAD2522C6B7B",
+	.plaintext	= "6BC1BEE22E409F96E93D7E117393172A"
+			  "AE2D8A571E03AC9C9EB76FAC45AF8E51"
+			  "30C81C46A35CE411E5FBC1191A0A52EF"
+			  "F69F2445DF4F9B17AD2B417BE66C3710",
+	.ciphertext	= "BD334F1D6E45F25FF712A214571FA5CC"
+			  "974104846D0AD3AD7734ECB3ECEE4EEF"
+			  "EF7AFD2270E2E60ADCE0BA2FACE6444E"
+			  "9A4B41BA738D6C72FB16691603C18E0E",
+};
+
+static const struct cipher_test ecb_aes256_nist = {
+	.type		= L_CIPHER_AES,
+	.key		= "603DEB1015CA71BE2B73AEF0857D7781"
+			  "1F352C073B6108D72D9810A30914DFF4",
+	.plaintext	= "6BC1BEE22E409F96E93D7E117393172A"
+			  "AE2D8A571E03AC9C9EB76FAC45AF8E51"
+			  "30C81C46A35CE411E5FBC1191A0A52EF"
+			  "F69F2445DF4F9B17AD2B417BE66C3710",
+	.ciphertext	= "F3EED1BDB5D2A03C064B5A7E3DB181F8"
+			  "591CCB10D410ED26DC5BA74A31362870"
+			  "B6ED21B99CA6F4F9F153E7B1BEAFED1D"
+			  "23304B7A39F9F3FF067D8D8F9E24ECC7",
+};
+
+static void test_encrypt(const void *data)
+{
+	const struct cipher_test *test = data;
+	unsigned char *key;
+	size_t key_len;
+	struct l_cipher *cipher;
+	unsigned char *plaintext;
+	size_t plaintext_len;
+	unsigned char *ciphertext;
+	unsigned char *expected;
+	size_t expected_len;
+	bool result;
+
+	key = l_util_from_hexstring(test->key, &key_len);
+	assert(key);
+
+	cipher = l_cipher_new(test->type, key, key_len);
+	assert(cipher);
+
+	plaintext = l_util_from_hexstring(test->plaintext, &plaintext_len);
+	assert(plaintext);
+
+	ciphertext = l_malloc(plaintext_len);
+
+	result = l_cipher_encrypt(cipher, plaintext, ciphertext, plaintext_len);
+	assert(result);
+
+	expected = l_util_from_hexstring(test->ciphertext, &expected_len);
+	assert(expected);
+	assert(expected_len == plaintext_len);
+	assert(!memcmp(ciphertext, expected, expected_len));
+
+	l_free(expected);
+	l_free(ciphertext);
+	l_free(plaintext);
+	l_cipher_free(cipher);
+	l_free(key);
+}
+
+static void test_decrypt(const void *data)
+{
+	const struct cipher_test *test = data;
+	unsigned char *key;
+	size_t key_len;
+	struct l_cipher *cipher;
+	unsigned char *ciphertext;
+	size_t ciphertext_len;
+	unsigned char *plaintext;
+	unsigned char *expected;
+	size_t expected_len;
+	bool result;
+
+	key = l_util_from_hexstring(test->key, &key_len);
+	assert(key);
+
+	cipher = l_cipher_new(test->type, key, key_len);
+	assert(cipher);
+
+	ciphertext = l_util_from_hexstring(test->ciphertext, &ciphertext_len);
+	assert(ciphertext);
+
+	plaintext = l_malloc(ciphertext_len);
+
+	result = l_cipher_decrypt(cipher, ciphertext, plaintext, ciphertext_len);
+	assert(result);
+
+	expected = l_util_from_hexstring(test->plaintext, &expected_len);
+	assert(expected);
+	assert(expected_len == ciphertext_len);
+	assert(!memcmp(plaintext, expected, expected_len));
+
+	l_free(expected);
+	l_free(plaintext);
+	l_free(ciphertext);
+	l_cipher_free(cipher);
+	l_free(key);
+}
+
 struct aead_test_vector {
 	enum l_aead_cipher_type type;
 	char *aad;
@@ -419,6 +545,11 @@ static void test_rc2(const void *data)
 	l_free(key);
 }
 
+#define add_encrypt_test(name, data) l_test_add_data_func(name, data, \
+					test_encrypt, L_TEST_FLAG_ALLOW_FAILURE)
+#define add_decrypt_test(name, data) l_test_add_data_func(name, data, \
+					test_decrypt, L_TEST_FLAG_ALLOW_FAILURE)
+
 int main(int argc, char *argv[])
 {
 	l_test_init(&argc, &argv);
@@ -451,6 +582,13 @@ int main(int argc, char *argv[])
 	l_test_add("rc2/test 1", test_rc2, &rc2_test_1);
 	l_test_add("rc2/test 2", test_rc2, &rc2_test_2);
 	l_test_add("rc2/test 3", test_rc2, &rc2_test_3);
+
+	add_encrypt_test("AES-128/encrypt/NIST", &ecb_aes128_nist);
+	add_decrypt_test("AES-128/decrypt/NIST", &ecb_aes128_nist);
+	add_encrypt_test("AES-192/encrypt/NIST", &ecb_aes192_nist);
+	add_decrypt_test("AES-192/decrypt/NIST", &ecb_aes192_nist);
+	add_encrypt_test("AES-256/encrypt/NIST", &ecb_aes256_nist);
+	add_decrypt_test("AES-256/decrypt/NIST", &ecb_aes256_nist);
 
 	return l_test_run();
 }
