@@ -146,6 +146,7 @@ static void test_arc4(const void *data)
 struct cipher_test {
 	enum l_cipher_type type;
 	const char *key;
+	const char *iv;
 	const char *plaintext;
 	const char *ciphertext;
 };
@@ -191,6 +192,50 @@ static const struct cipher_test ecb_aes256_nist = {
 			  "23304B7A39F9F3FF067D8D8F9E24ECC7",
 };
 
+static const struct cipher_test cbc_aes128_nist = {
+	.type		= L_CIPHER_AES_CBC,
+	.key		= "2B7E151628AED2A6ABF7158809CF4F3C",
+	.iv		= "000102030405060708090A0B0C0D0E0F",
+	.plaintext	= "6BC1BEE22E409F96E93D7E117393172A"
+			  "AE2D8A571E03AC9C9EB76FAC45AF8E51"
+			  "30C81C46A35CE411E5FBC1191A0A52EF"
+			  "F69F2445DF4F9B17AD2B417BE66C3710",
+	.ciphertext	= "7649ABAC8119B246CEE98E9B12E9197D"
+			  "5086CB9B507219EE95DB113A917678B2"
+			  "73BED6B8E3C1743B7116E69E22229516"
+			  "3FF1CAA1681FAC09120ECA307586E1A7",
+};
+
+static const struct cipher_test cbc_aes192_nist = {
+	.type		= L_CIPHER_AES_CBC,
+	.key		= "8E73B0F7DA0E6452C810F32B809079E5"
+			  "62F8EAD2522C6B7B",
+	.iv		= "000102030405060708090A0B0C0D0E0F",
+	.plaintext	= "6BC1BEE22E409F96E93D7E117393172A"
+			  "AE2D8A571E03AC9C9EB76FAC45AF8E51"
+			  "30C81C46A35CE411E5FBC1191A0A52EF"
+			  "F69F2445DF4F9B17AD2B417BE66C3710",
+	.ciphertext	= "4F021DB243BC633D7178183A9FA071E8"
+			  "B4D9ADA9AD7DEDF4E5E738763F69145A"
+			  "571B242012FB7AE07FA9BAAC3DF102E0"
+			  "08B0E27988598881D920A9E64F5615CD",
+};
+
+static const struct cipher_test cbc_aes256_nist = {
+	.type		= L_CIPHER_AES_CBC,
+	.key		= "603DEB1015CA71BE2B73AEF0857D7781"
+			  "1F352C073B6108D72D9810A30914DFF4",
+	.iv		= "000102030405060708090A0B0C0D0E0F",
+	.plaintext	= "6BC1BEE22E409F96E93D7E117393172A"
+			  "AE2D8A571E03AC9C9EB76FAC45AF8E51"
+			  "30C81C46A35CE411E5FBC1191A0A52EF"
+			  "F69F2445DF4F9B17AD2B417BE66C3710",
+	.ciphertext	= "F58C4C04D6E5F1BA779EABFB5F7BFBD6"
+			  "9CFC4E967EDB808D679F777BC6702C7D"
+			  "39F23369A9D9BACFA530E26304231461"
+			  "B2EB05E2C39BE9FCDA6C19078C6A9D1B",
+};
+
 static void test_encrypt(const void *data)
 {
 	const struct cipher_test *test = data;
@@ -209,6 +254,19 @@ static void test_encrypt(const void *data)
 
 	cipher = l_cipher_new(test->type, key, key_len);
 	assert(cipher);
+
+	if (test->iv) {
+		unsigned char *iv;
+		size_t iv_len;
+
+		iv = l_util_from_hexstring(test->iv, &iv_len);
+		assert(iv);
+
+		result = l_cipher_set_iv(cipher, iv, iv_len);
+		assert(result);
+
+		l_free(iv);
+	}
 
 	plaintext = l_util_from_hexstring(test->plaintext, &plaintext_len);
 	assert(plaintext);
@@ -248,6 +306,19 @@ static void test_decrypt(const void *data)
 
 	cipher = l_cipher_new(test->type, key, key_len);
 	assert(cipher);
+
+	if (test->iv) {
+		unsigned char *iv;
+		size_t iv_len;
+
+		iv = l_util_from_hexstring(test->iv, &iv_len);
+		assert(iv);
+
+		result = l_cipher_set_iv(cipher, iv, iv_len);
+		assert(result);
+
+		l_free(iv);
+	}
 
 	ciphertext = l_util_from_hexstring(test->ciphertext, &ciphertext_len);
 	assert(ciphertext);
@@ -589,6 +660,12 @@ int main(int argc, char *argv[])
 	add_decrypt_test("AES-192/decrypt/NIST", &ecb_aes192_nist);
 	add_encrypt_test("AES-256/encrypt/NIST", &ecb_aes256_nist);
 	add_decrypt_test("AES-256/decrypt/NIST", &ecb_aes256_nist);
+	add_encrypt_test("CBC-AES-128/encrypt/NIST", &cbc_aes128_nist);
+	add_decrypt_test("CBS-AES-128/decrypt/NIST", &cbc_aes128_nist);
+	add_encrypt_test("CBC-AES-192/encrypt/NIST", &cbc_aes192_nist);
+	add_decrypt_test("CBS-AES-192/decrypt/NIST", &cbc_aes192_nist);
+	add_encrypt_test("CBC-AES-256/encrypt/NIST", &cbc_aes256_nist);
+	add_decrypt_test("CBS-AES-256/decrypt/NIST", &cbc_aes256_nist);
 
 	return l_test_run();
 }
