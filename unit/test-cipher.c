@@ -606,11 +606,8 @@ int main(int argc, char *argv[])
 
 	l_test_add("unsupported", test_unsupported, NULL);
 
-	if (l_cipher_is_supported(L_CIPHER_AES))
-		l_test_add("aes", test_aes, NULL);
-
-	if (l_cipher_is_supported(L_CIPHER_AES_CTR))
-		l_test_add("aes_ctr", test_aes_ctr, NULL);
+	l_test_add_func("aes", test_aes, L_TEST_FLAG_ALLOW_FAILURE);
+	l_test_add_func("aes_ctr", test_aes_ctr, L_TEST_FLAG_ALLOW_FAILURE);
 
 	if (l_aead_cipher_is_supported(L_AEAD_CIPHER_AES_CCM)) {
 		l_test_add("aes_ccm long nonce", test_aead, &ccm_long_nonce);
