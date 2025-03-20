@@ -236,6 +236,50 @@ static const struct cipher_test cbc_aes256_nist = {
 			  "B2EB05E2C39BE9FCDA6C19078C6A9D1B",
 };
 
+static const struct cipher_test ctr_aes128_nist = {
+	.type		= L_CIPHER_AES_CTR,
+	.key		= "2B7E151628AED2A6ABF7158809CF4F3C",
+	.iv		= "F0F1F2F3F4F5F6F7F8F9FAFBFCFDFEFF",
+	.plaintext	= "6BC1BEE22E409F96E93D7E117393172A"
+			  "AE2D8A571E03AC9C9EB76FAC45AF8E51"
+			  "30C81C46A35CE411E5FBC1191A0A52EF"
+			  "F69F2445DF4F9B17AD2B417BE66C3710",
+	.ciphertext	= "874D6191B620E3261BEF6864990DB6CE"
+			  "9806F66B7970FDFF8617187BB9FFFDFF"
+			  "5AE4DF3EDBD5D35E5B4F09020DB03EAB"
+			  "1E031DDA2FBE03D1792170A0F3009CEE",
+};
+
+static const struct cipher_test ctr_aes192_nist = {
+	.type		= L_CIPHER_AES_CTR,
+	.key		= "8E73B0F7DA0E6452C810F32B809079E5"
+			  "62F8EAD2522C6B7B",
+	.iv		= "F0F1F2F3F4F5F6F7F8F9FAFBFCFDFEFF",
+	.plaintext	= "6BC1BEE22E409F96E93D7E117393172A"
+			  "AE2D8A571E03AC9C9EB76FAC45AF8E51"
+			  "30C81C46A35CE411E5FBC1191A0A52EF"
+			  "F69F2445DF4F9B17AD2B417BE66C3710",
+	.ciphertext	= "1ABC932417521CA24F2B0459FE7E6E0B"
+			  "090339EC0AA6FAEFD5CCC2C6F4CE8E94"
+			  "1E36B26BD1EBC670D1BD1D665620ABF7"
+			  "4F78A7F6D29809585A97DAEC58C6B050",
+};
+
+static const struct cipher_test ctr_aes256_nist = {
+	.type		= L_CIPHER_AES_CTR,
+	.key		= "603DEB1015CA71BE2B73AEF0857D7781"
+			  "1F352C073B6108D72D9810A30914DFF4",
+	.iv		= "F0F1F2F3F4F5F6F7F8F9FAFBFCFDFEFF",
+	.plaintext	= "6BC1BEE22E409F96E93D7E117393172A"
+			  "AE2D8A571E03AC9C9EB76FAC45AF8E51"
+			  "30C81C46A35CE411E5FBC1191A0A52EF"
+			  "F69F2445DF4F9B17AD2B417BE66C3710",
+	.ciphertext	= "601EC313775789A5B7A7F504BBF3D228"
+			  "F443E3CA4D62B59ACA84E990CACAF5C5"
+			  "2B0930DAA23DE94CE87017BA2D84988D"
+			  "DFC9C58DB67AADA613C2DD08457941A6",
+};
+
 static void test_encrypt(const void *data)
 {
 	const struct cipher_test *test = data;
@@ -666,6 +710,12 @@ int main(int argc, char *argv[])
 	add_decrypt_test("CBS-AES-192/decrypt/NIST", &cbc_aes192_nist);
 	add_encrypt_test("CBC-AES-256/encrypt/NIST", &cbc_aes256_nist);
 	add_decrypt_test("CBS-AES-256/decrypt/NIST", &cbc_aes256_nist);
+	add_encrypt_test("CTR-AES-128/encrypt/NIST", &ctr_aes128_nist);
+	add_decrypt_test("CTR-AES-128/decrypt/NIST", &ctr_aes128_nist);
+	add_encrypt_test("CTR-AES-192/encrypt/NIST", &ctr_aes192_nist);
+	add_decrypt_test("CTR-AES-192/decrypt/NIST", &ctr_aes192_nist);
+	add_encrypt_test("CTR-AES-256/encrypt/NIST", &ctr_aes256_nist);
+	add_decrypt_test("CTR-AES-256/decrypt/NIST", &ctr_aes256_nist);
 
 	return l_test_run();
 }
