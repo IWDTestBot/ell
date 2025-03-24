@@ -112,10 +112,13 @@ static void test_vector_p192(const void *data)
 							sizeof(b_sec_buf));
 	struct l_ecc_point *b_public = l_ecc_point_new(curve);
 
-	memcpy(a_public->x, a_pub_buf, 24);
-	memcpy(a_public->y, a_pub_buf + 3, 24);
-	memcpy(b_public->x, b_pub_buf, 24);
-	memcpy(b_public->y, b_pub_buf + 3, 24);
+	l_ecc_point_multiply_g(a_public, a_secret);
+	l_ecc_point_multiply_g(b_public, b_secret);
+
+	assert(!memcmp(a_public->x, a_pub_buf, 24));
+	assert(!memcmp(a_public->y, a_pub_buf + 3, 24));
+	assert(!memcmp(b_public->x, b_pub_buf, 24));
+	assert(!memcmp(b_public->y, b_pub_buf + 3, 24));
 
 	use_real_getrandom = false;
 
@@ -172,10 +175,13 @@ static void test_vector_p256(const void *data)
 							sizeof(b_sec_buf));
 	struct l_ecc_point *b_public = l_ecc_point_new(curve);
 
-	memcpy(a_public->x, a_pub_buf, 32);
-	memcpy(a_public->y, a_pub_buf + 4, 32);
-	memcpy(b_public->x, b_pub_buf, 32);
-	memcpy(b_public->y, b_pub_buf + 4, 32);
+	l_ecc_point_multiply_g(a_public, a_secret);
+	l_ecc_point_multiply_g(b_public, b_secret);
+
+	assert(!memcmp(a_public->x, a_pub_buf, 32));
+	assert(!memcmp(a_public->y, a_pub_buf + 4, 32));
+	assert(!memcmp(b_public->x, b_pub_buf, 32));
+	assert(!memcmp(b_public->y, b_pub_buf + 4, 32));
 
 	use_real_getrandom = false;
 
@@ -235,10 +241,13 @@ static void test_vector_p384(const void *data)
 							sizeof(b_sec_buf));
 	struct l_ecc_point *b_public = l_ecc_point_new(curve);
 
-	memcpy(a_public->x, a_pub_buf, 48);
-	memcpy(a_public->y, a_pub_buf + 6, 48);
-	memcpy(b_public->x, b_pub_buf, 48);
-	memcpy(b_public->y, b_pub_buf + 6, 48);
+	l_ecc_point_multiply_g(a_public, a_secret);
+	l_ecc_point_multiply_g(b_public, b_secret);
+
+	assert(!memcmp(a_public->x, a_pub_buf, 48));
+	assert(!memcmp(a_public->y, a_pub_buf + 6, 48));
+	assert(!memcmp(b_public->x, b_pub_buf, 48));
+	assert(!memcmp(b_public->y, b_pub_buf + 6, 48));
 
 	use_real_getrandom = false;
 
