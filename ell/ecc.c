@@ -54,6 +54,35 @@ static const struct l_ecc_curve p192 = {
 };
 
 /*
+ * RFC 5114 - Section 2.5 224-bit Random ECP Group
+ */
+#define P224_CURVE_P { 0x0000000000000001ull, 0xFFFFFFFF00000000ull, \
+			0xFFFFFFFFFFFFFFFFull, 0xFFFFFFFFull }
+#define P224_CURVE_GX { 0x343280D6115C1D21ull, 0x4A03C1D356C21122ull, \
+			0x6BB4BF7F321390B9ull, 0xB70E0CBDull }
+#define P224_CURVE_GY { 0x44D5819985007E34ull, 0xCD4375A05A074764ull, \
+			0xB5F723FB4C22DFE6ull, 0xBD376388ull }
+#define P224_CURVE_N { 0x13DD29455C5C2A3Dull, 0xFFFF16A2E0B8F03Eull, \
+			0xFFFFFFFFFFFFFFFFull, 0xFFFFFFFFull }
+#define P224_CURVE_B { 0x270B39432355FFB4ull, 0x5044B0B7D7BFD8BAull, \
+			0x0C04B3ABF5413256ull, 0xB4050A85ull }
+
+static const struct l_ecc_curve p224 = {
+	.name = "secp224r1",
+	.ike_group = 26,
+	.tls_group = 21,
+	.ndigits = 4,
+	.g = {
+		.x = P224_CURVE_GX,
+		.y = P224_CURVE_GY,
+		.curve = &p224
+	},
+	.p = P224_CURVE_P,
+	.n = P224_CURVE_N,
+	.b = P224_CURVE_B,
+};
+
+/*
  * RFC 5114 - Section 2.6 256-bit Random ECP Group
  */
 #define P256_CURVE_P { 0xFFFFFFFFFFFFFFFFull, 0x00000000FFFFFFFFull, \
@@ -166,6 +195,7 @@ static const struct l_ecc_curve *curves[] = {
 	&p384,
 	&p256,
 	&p521,
+	&p224,
 	&p192,
 };
 
