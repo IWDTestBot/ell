@@ -624,7 +624,27 @@ static void vli_mmod_fast_384(uint64_t *result, const uint64_t *product,
 
 /* Computes result = product % curve_prime
  *  from http://www.nsa.gov/ia/_files/nist-routines.pdf
-*/
+ */
+static void vli_mmod_fast_521(uint64_t *result, const uint64_t *product,
+				const uint64_t *curve_prime, uint64_t *tmp)
+{
+	const unsigned int ndigits = 9;
+	size_t i;
+
+	/* Initialize result with lowest 521 bits from product */
+	vli_set(result, product, ndigits);
+	result[8] &= 0x1ff;
+
+	for (i = 0; i < ndigits; i++)
+		tmp[i] = (product[8 + i] >> 9) | (product[9 + i] << 55);
+	tmp[8] &= 0x1ff;
+
+	_vli_mod_add(result, result, tmp, curve_prime, ndigits);
+}
+
+/* Computes result = product % curve_prime
+ *  from http://www.nsa.gov/ia/_files/nist-routines.pdf
+ */
 bool _vli_mmod_fast(uint64_t *result, const uint64_t *product,
 			const uint64_t *curve_prime, unsigned int ndigits)
 {
@@ -639,6 +659,9 @@ bool _vli_mmod_fast(uint64_t *result, const uint64_t *product,
 		break;
 	case 6:
 		vli_mmod_fast_384(result, product, curve_prime, tmp);
+		break;
+	case 9:
+		vli_mmod_fast_521(result, product, curve_prime, tmp);
 		break;
 	default:
 		return false;
@@ -964,13 +987,17 @@ void _ecc_point_mult(struct l_ecc_point *result,
 	uint64_t sk[2][L_ECC_MAX_DIGITS];
 	int i, nb;
 	unsigned int ndigits = curve->ndigits;
+	unsigned int nbits = _vli_num_bits(curve->n, ndigits);
 	int num_bits;
 	int carry;
 
 	carry = _vli_add(sk[0], scalar, curve->n, ndigits);
 	_vli_add(sk[1], sk[0], curve->n, ndigits);
 	scalar = sk[!carry];
-	num_bits = sizeof(uint64_t) * ndigits * 8 + 1;
+	if (nbits == 521)	/* secp521r1 */
+		num_bits = nbits + 2;
+	else
+		num_bits = sizeof(uint64_t) * ndigits * 8 + 1;
 
 	vli_set(rx[1], point->x, ndigits);
 	vli_set(ry[1], point->y, ndigits);
