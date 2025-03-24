@@ -492,6 +492,29 @@ static const struct ecc_keypair keypair_p384 = {
 			  "288B231C3AE0D4FE7344FD2533264720",
 };
 
+static const struct ecc_keypair keypair_p521 = {
+	/* RFC 6979 - Appendix A.2.7.  ECDSA, 521 Bits (Prime Field) */
+	.curve_name	= "secp521r1",
+	.private_key	= "0000000000000"
+			  "0FAD06DAA62BA3B25D2FB40133DA7572"
+			  "05DE67F5BB0018FEE8C86E1B68C7E75C"
+			  "AA896EB32F1F47C70855836A6D16FCC1"
+			  "466F6D8FBEC67DB89EC0C08B0E996B83"
+			  "538",
+	.public_key	= "0000000000000"
+			  "1894550D0785932E00EAA23B694F213F"
+			  "8C3121F86DC97A04E5A7167DB4E5BCD3"
+			  "71123D46E45DB6B5D5370A7F20FB6331"
+			  "55D38FFA16D2BD761DCAC474B9A2F502"
+			  "3A4"
+			  "0000000000000"
+			  "0493101C962CD4D2FDDF782285E64584"
+			  "139C2F91B47F87FF82354D6630F746A2"
+			  "8A0DB25741B5B34A828008B22ACC23F9"
+			  "24FAAFBD4D33F81EA66956DFEAA2BFDF"
+			  "CF5",
+};
+
 static const struct ecc_keypair keypair_p192_bt = {
 	/* Bluetooth debug key for P-192 */
 	.curve_name	= "secp192r1",
@@ -551,6 +574,7 @@ int main(int argc, char *argv[])
 	l_test_add("ECC P-192 key pair test", keypair_test, &keypair_p192);
 	l_test_add("ECC P-256 key pair test", keypair_test, &keypair_p256);
 	l_test_add("ECC P-384 key pair test", keypair_test, &keypair_p384);
+	l_test_add("ECC P-521 key pair test", keypair_test, &keypair_p521);
 
 	l_test_add("ECC P-192 Bluetooth debug key pair test",
 					keypair_test, &keypair_p192_bt);
