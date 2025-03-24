@@ -467,6 +467,20 @@ static const struct ecc_keypair keypair_p192 = {
 			  "0A7C957BC97C1C43",
 };
 
+static const struct ecc_keypair keypair_p224 = {
+	/* RFC 6979 - Appendix A.2.4.  ECDSA, 224 Bits (Prime Field) */
+	.curve_name	= "secp224r1",
+	.private_key	= "00000000"
+			  "F220266E1105BFE3083E03EC7A3A6546"
+			  "51F45E37167E88600BF257C1",
+	.public_key	= "00000000"
+			  "00CF08DA5AD719E42707FA431292DEA1"
+			  "1244D64FC51610D94B130D6C"
+			  "00000000"
+			  "EEAB6F3DEBE455E3DBF85416F7030CBD"
+			  "94F34F2D6F232C69F3C1385A",
+};
+
 static const struct ecc_keypair keypair_p256 = {
 	/* RFC 6979 - Appendix A.2.5.  ECDSA, 256 Bits (Prime Field) */
 	.curve_name	= "secp256r1",
@@ -572,6 +586,7 @@ int main(int argc, char *argv[])
 	l_test_add("ECC compressed points", run_test_compressed_points, NULL);
 
 	l_test_add("ECC P-192 key pair test", keypair_test, &keypair_p192);
+	l_test_add("ECC P-224 key pair test", keypair_test, &keypair_p224);
 	l_test_add("ECC P-256 key pair test", keypair_test, &keypair_p256);
 	l_test_add("ECC P-384 key pair test", keypair_test, &keypair_p384);
 	l_test_add("ECC P-521 key pair test", keypair_test, &keypair_p521);
