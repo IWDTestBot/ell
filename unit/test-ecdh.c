@@ -139,6 +139,67 @@ static void test_vector_p192(const void *data)
 }
 
 /*
+ * Test vector from RFC 5114 - 224-bit Random ECP Group
+ */
+static void test_vector_p224(const void *data)
+{
+	const struct l_ecc_curve *curve = l_ecc_curve_from_ike_group(26);
+
+	uint64_t a_sec_buf[4] = { 0x5C7573E22E26D37Full, 0xAE2AB9E9CB62E3BCull,
+				0x288DA707BBB4F8FBull, 0xB558EB6Cull };
+	uint64_t a_pub_buf[8] = { 0x833150E0A51F3EEBull, 0xB3EE5A2154367DC7ull,
+				0x9F81488C304CFF5Aull, 0x49DFEF30ull,
+				0xCE3D7C228D57ADB4ull, 0x7F54CF88B016B51Bull,
+				0x5762C4F654C1A0C6ull, 0x4F2B5EE4ull };
+
+	uint64_t b_sec_buf[4] = { 0xF27F85C88B5E6D18ull, 0x9F3B8E0AB3B480E9ull,
+				0x3D9770E6F6A708EEull, 0xAC3B1ADDull };
+	uint64_t b_pub_buf[8] = { 0xD219506DCD42A207ull, 0x32EDF10C162D0A8Aull,
+				0x8D0CDE6A5599BE80ull, 0x6B3AC96Aull,
+				0x3E2609C8B1618AD5ull, 0xBFE305F361AFCBB3ull,
+				0xC213A7D1CA3706DEull, 0xD491BE99ull };
+
+	uint64_t ss_buf[4] = { 0x6DC1714A4EA949FAull, 0x92F46DF2D96ECC3Bull,
+				0xF46F4EDC91515690ull, 0x52272F50ull };
+
+	struct l_ecc_scalar *a_shared;
+	struct l_ecc_scalar *b_shared;
+
+	struct l_ecc_scalar *a_secret = _ecc_constant_new(curve, a_sec_buf,
+							sizeof(a_sec_buf));
+	struct l_ecc_point *a_public = l_ecc_point_new(curve);
+
+	struct l_ecc_scalar *b_secret = _ecc_constant_new(curve, b_sec_buf,
+							sizeof(b_sec_buf));
+	struct l_ecc_point *b_public = l_ecc_point_new(curve);
+
+	l_ecc_point_multiply_g(a_public, a_secret);
+	l_ecc_point_multiply_g(b_public, b_secret);
+
+	assert(!memcmp(a_public->x, a_pub_buf, 28));
+	assert(!memcmp(a_public->y, a_pub_buf + 4, 28));
+	assert(!memcmp(b_public->x, b_pub_buf, 28));
+	assert(!memcmp(b_public->y, b_pub_buf + 4, 28));
+
+	use_real_getrandom = false;
+
+	assert(l_ecdh_generate_shared_secret(a_secret, b_public, &a_shared));
+	assert(l_ecdh_generate_shared_secret(b_secret, a_public, &b_shared));
+
+	assert(!memcmp(a_shared->c, ss_buf, 28));
+	assert(!memcmp(b_shared->c, ss_buf, 28));
+
+	use_real_getrandom = true;
+
+	l_ecc_scalar_free(a_secret);
+	l_ecc_scalar_free(b_secret);
+	l_ecc_point_free(a_public);
+	l_ecc_point_free(b_public);
+	l_ecc_scalar_free(a_shared);
+	l_ecc_scalar_free(b_shared);
+}
+
+/*
  * Test vector from RFC 5114 - 256-bit Random ECP Group
  */
 static void test_vector_p256(const void *data)
@@ -274,6 +335,7 @@ int main(int argc, char *argv[])
 		l_test_add("ECDH Basic", test_basic, NULL);
 
 	l_test_add("ECDH test vector P192", test_vector_p192, NULL);
+	l_test_add("ECDH test vector P224", test_vector_p224, NULL);
 	l_test_add("ECDH test vector P256", test_vector_p256, NULL);
 	l_test_add("ECDH test vector P384", test_vector_p384, NULL);
 
