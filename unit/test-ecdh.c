@@ -413,11 +413,11 @@ int main(int argc, char *argv[])
 	if (l_getrandom_is_supported())
 		l_test_add("ECDH Basic", test_basic, NULL);
 
-	l_test_add("ECDH test vector P192", test_vector_p192, NULL);
-	l_test_add("ECDH test vector P224", test_vector_p224, NULL);
-	l_test_add("ECDH test vector P256", test_vector_p256, NULL);
-	l_test_add("ECDH test vector P384", test_vector_p384, NULL);
-	l_test_add("ECDH test vector P521", test_vector_p521, NULL);
+	l_test_add("ECDH Test Vector P-192", test_vector_p192, NULL);
+	l_test_add("ECDH Test Vector P-224", test_vector_p224, NULL);
+	l_test_add("ECDH Test Vector P-256", test_vector_p256, NULL);
+	l_test_add("ECDH Test Vector P-384", test_vector_p384, NULL);
+	l_test_add("ECDH Test Vector P-521", test_vector_p521, NULL);
 
 	return l_test_run();
 }
