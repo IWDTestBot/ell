@@ -327,6 +327,85 @@ static void test_vector_p384(const void *data)
 	l_ecc_scalar_free(b_shared);
 }
 
+/*
+ * Test vector from RFC 5114 - 521-bit Random ECP Group
+ */
+static void test_vector_p521(const void *data)
+{
+	const struct l_ecc_curve *curve = l_ecc_curve_from_ike_group(21);
+
+	uint64_t a_sec_buf[9] = { 0x16CD3C1A1FB47362ull, 0x9AF4C6C470BE2545ull,
+				0x015D344DCBFEF6FBull, 0x9EE78B3FFB9B8683ull,
+				0x430CC4F33459B966ull, 0xD27335EA71664AF2ull,
+				0x276683B2B74277BAull, 0xF82DA825735E3D97ull,
+				0x0113ull };
+	uint64_t a_pub_buf[18] = { 0x3A2DBF59924FD35Cull, 0xF9A45BBDF6413D58ull,
+				0xDD046EE30E3FFD20ull, 0xFD4442E689D61CB2ull,
+				0x07BB0F2B26E14881ull, 0x65D90A7C60F2CEF0ull,
+				0xC9DBED17889CBB97ull, 0xB34DD75721ABF8ADull,
+				0x01EBull,
+				0x3489B3B42A5A86A4ull, 0x233E4830587BB2EEull,
+				0xB5EECAED1A5FC38Aull, 0xEDB0916D1B53C020ull,
+				0x08351B2F8C4EDA94ull, 0x95ADFD153F92D749ull,
+				0xD8437E558C552AE1ull, 0xB632D194C0388E22ull,
+				0x00F6 };
+	uint64_t b_sec_buf[9] = { 0x193DC2C9D0891B96ull, 0x72903C361B1A9DC1ull,
+				0x35B01048066EBE4Full, 0x8448BCD1DC2496D4ull,
+				0xC3378732AA1B2292ull, 0x52D1791FDB4B70F7ull,
+				0x9F2776D28BAE6169ull, 0xE3480D8645A17D24ull,
+				0x00CEull };
+	uint64_t b_pub_buf[18] = { 0xC24295B8A08D0235ull, 0xB5BA4EE5E0D81510ull,
+				0xE9F08B33CE7E9FEEull, 0x00430BA97C8AC6A0ull,
+				0x39AE44766201AF62ull, 0x34BEEB1B6DEC8C59ull,
+				0xFFFCC1A4511DB0E6ull, 0xBFAFC6E85E08D24Bull,
+				0x010Eull,
+				0x72915FBD4FEF2695ull, 0xBA4D2A0E60711BE5ull,
+				0xD36863CC9D448F4Dull, 0x6E30A1419C18E029ull,
+				0x18CF8099B9F4212Bull, 0x36719A77887EBB0Bull,
+				0x372B5E7ABFEF0934ull, 0xA6EC300DF9E257B0ull,
+				0x00A4ull };
+	uint64_t ss_buf[9] = { 0xECA77911169C20CCull, 0xA08F5D87521BB0EBull,
+				0x2F845DAFF82CEB1Dull, 0x866A0DD3E6126C9Dull,
+				0xC98C7A00CDE54ED1ull, 0x4368EB5656634C7Cull,
+				0xF9E4CFE2261CDE2Dull, 0xEA89621CFA46B132ull,
+				0x00CDull };
+	struct l_ecc_scalar *a_shared;
+	struct l_ecc_scalar *b_shared;
+
+	struct l_ecc_scalar *a_secret = _ecc_constant_new(curve, a_sec_buf,
+							sizeof(a_sec_buf));
+	struct l_ecc_point *a_public = l_ecc_point_new(curve);
+
+	struct l_ecc_scalar *b_secret = _ecc_constant_new(curve, b_sec_buf,
+							sizeof(b_sec_buf));
+	struct l_ecc_point *b_public = l_ecc_point_new(curve);
+
+	l_ecc_point_multiply_g(a_public, a_secret);
+	l_ecc_point_multiply_g(b_public, b_secret);
+
+	assert(!memcmp(a_public->x, a_pub_buf, 66));
+	assert(!memcmp(a_public->y, a_pub_buf + 9, 66));
+	assert(!memcmp(b_public->x, b_pub_buf, 66));
+	assert(!memcmp(b_public->y, b_pub_buf + 9, 66));
+
+	use_real_getrandom = false;
+
+	assert(l_ecdh_generate_shared_secret(a_secret, b_public, &a_shared));
+	assert(l_ecdh_generate_shared_secret(b_secret, a_public, &b_shared));
+
+	assert(!memcmp(a_shared->c, ss_buf, 66));
+	assert(!memcmp(b_shared->c, ss_buf, 66));
+
+	use_real_getrandom = true;
+
+	l_ecc_scalar_free(a_secret);
+	l_ecc_scalar_free(b_secret);
+	l_ecc_point_free(a_public);
+	l_ecc_point_free(b_public);
+	l_ecc_scalar_free(a_shared);
+	l_ecc_scalar_free(b_shared);
+}
+
 int main(int argc, char *argv[])
 {
 	l_test_init(&argc, &argv);
@@ -338,6 +417,7 @@ int main(int argc, char *argv[])
 	l_test_add("ECDH test vector P224", test_vector_p224, NULL);
 	l_test_add("ECDH test vector P256", test_vector_p256, NULL);
 	l_test_add("ECDH test vector P384", test_vector_p384, NULL);
+	l_test_add("ECDH test vector P521", test_vector_p521, NULL);
 
 	return l_test_run();
 }
