@@ -1028,19 +1028,26 @@ LIB_EXPORT struct l_ecc_scalar *l_ecc_scalar_new_reduced_1_to_n(
 	return c;
 }
 
+#define ECC_RANDOM_MAX_ITERATIONS 20
+
 LIB_EXPORT struct l_ecc_scalar *l_ecc_scalar_new_random(
 					const struct l_ecc_curve *curve)
 {
+	int iter = 0;
 	uint64_t r[L_ECC_MAX_DIGITS];
 
-	l_getrandom(r, curve->ndigits * 8);
-
-	while (_vli_cmp(r, curve->p, curve->ndigits) > 0 ||
-			_vli_cmp(r, curve->n, curve->ndigits) > 0 ||
-			_vli_is_zero_or_one(r, curve->ndigits))
+	while (iter++ < ECC_RANDOM_MAX_ITERATIONS) {
 		l_getrandom(r, curve->ndigits * 8);
 
-	return _ecc_constant_new(curve, r, curve->ndigits * 8);
+		if (_vli_cmp(r, curve->p, curve->ndigits) > 0 ||
+				_vli_cmp(r, curve->n, curve->ndigits) > 0 ||
+				_vli_is_zero_or_one(r, curve->ndigits))
+			continue;
+
+		return _ecc_constant_new(curve, r, curve->ndigits * 8);
+	}
+
+	return NULL;
 }
 
 LIB_EXPORT ssize_t l_ecc_scalar_get_data(const struct l_ecc_scalar *c,
