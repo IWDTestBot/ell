@@ -1039,6 +1039,11 @@ LIB_EXPORT struct l_ecc_scalar *l_ecc_scalar_new_random(
 	while (iter++ < ECC_RANDOM_MAX_ITERATIONS) {
 		l_getrandom(r, curve->ndigits * 8);
 
+		if (curve == &p521)
+			r[8] &= 0x1ff;
+		else if (curve == &p224)
+			r[3] &= 0xffffffff;
+
 		if (_vli_cmp(r, curve->p, curve->ndigits) > 0 ||
 				_vli_cmp(r, curve->n, curve->ndigits) > 0 ||
 				_vli_is_zero_or_one(r, curve->ndigits))
