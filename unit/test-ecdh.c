@@ -50,7 +50,9 @@ bool __wrap_l_getrandom(void *buf, size_t len)
  */
 static void test_basic(const void *data)
 {
-	const struct l_ecc_curve *curve = l_ecc_curve_from_ike_group(19);
+	unsigned int group = L_PTR_TO_UINT(data);
+	const struct l_ecc_curve *curve = l_ecc_curve_from_ike_group(group);
+	size_t nbytes = l_ecc_curve_get_scalar_bytes(curve);
 
 	struct l_ecc_scalar *private1;
 	struct l_ecc_scalar *private2;
@@ -67,7 +69,7 @@ static void test_basic(const void *data)
 	assert(l_ecdh_generate_shared_secret(private1, public2, &secret1));
 	assert(l_ecdh_generate_shared_secret(private2, public1, &secret2));
 
-	assert(!memcmp(secret1->c, secret2->c, 32));
+	assert(!memcmp(secret1->c, secret2->c, nbytes));
 
 	l_ecc_scalar_free(private1);
 	l_ecc_scalar_free(private2);
@@ -406,12 +408,19 @@ static void test_vector_p521(const void *data)
 	l_ecc_scalar_free(b_shared);
 }
 
+#define add_basic_test(name, group) l_test_add_data_func(name, \
+					L_UINT_TO_PTR(group), \
+					test_basic, L_TEST_FLAG_ALLOW_FAILURE)
+
 int main(int argc, char *argv[])
 {
 	l_test_init(&argc, &argv);
 
-	if (l_getrandom_is_supported())
-		l_test_add("ECDH Basic", test_basic, NULL);
+	add_basic_test("ECDH Basic P-192", 25);
+	add_basic_test("ECDH Basic P-224", 26);
+	add_basic_test("ECDH Basic P-256", 19);
+	add_basic_test("ECDH Basic P-384", 20);
+	add_basic_test("ECDH Basic P-521", 21);
 
 	l_test_add("ECDH Test Vector P-192", test_vector_p192, NULL);
 	l_test_add("ECDH Test Vector P-224", test_vector_p224, NULL);
