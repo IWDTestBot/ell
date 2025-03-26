@@ -1,3 +1,9 @@
+ver 0.75:
+	Add support for converting OID octets to strings.
+	Add support for NIST P-224 cuve usage with ECDH.
+	Add support for NIST P-521 cuve usage with ECDH.
+	Add support for SHA-3 series of hashing algorithms.
+
 ver 0.74:
 	Add support for NIST P-192 curve usage with ECDH.
 	Add support for SHA-224 based checksums and HMACs.
