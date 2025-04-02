@@ -1052,6 +1052,18 @@ LIB_EXPORT struct l_ecc_scalar *l_ecc_scalar_new_random(
 		return _ecc_constant_new(curve, r, curve->ndigits * 8);
 	}
 
+	/*
+	 * In the really unlikely case that ECC_RANDOM_MAX_ITERATIONS
+	 * number of times the random data is not a valid scalar,
+	 * then just abort.  If this happens something is really
+	 * wrong with the random source and there is no point to
+	 * continue operation.
+	 */
+
+	fprintf(stderr, "%s:%s(): failed to allocate valid scalar\n",
+							STRLOC, __func__);
+	abort();
+
 	return NULL;
 }
 
