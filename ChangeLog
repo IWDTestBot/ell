@@ -1,3 +1,6 @@
+ver 0.76:
+	Fix issue with random scalar generation.
+
 ver 0.75:
 	Add support for converting OID octets to strings.
 	Add support for NIST P-224 cuve usage with ECDH.
