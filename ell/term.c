@@ -391,9 +391,6 @@ LIB_EXPORT int l_term_putnstr(struct l_term *term, const char *str, size_t n)
 	if (!term)
 		return -EINVAL;
 
-	if (!term->is_running)
-		return -EPERM;
-
 	res = write(term->out_fd, str, n);
 	if (res < 0)
 		return -errno;
@@ -434,9 +431,6 @@ LIB_EXPORT int l_term_vprint(struct l_term *term, const char *str, va_list ap)
 {
 	if (!term || !str)
 		return -EINVAL;
-
-	if (!term->is_running)
-		return -EPERM;
 
 	if (vdprintf(term->out_fd, str, ap) < 0)
 		return -errno;
