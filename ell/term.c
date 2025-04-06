@@ -126,7 +126,7 @@ struct l_term {
 	unsigned short num_row;
 	unsigned short num_col;
 	struct l_signal *sigwinch;
-	bool is_running;
+	bool is_acquired;
 	char key_buf[8];
 	size_t key_len;
 	l_term_key_func_t key_handler;
@@ -145,7 +145,7 @@ LIB_EXPORT struct l_term *l_term_new(void)
 	term->out_fd = -1;
 	term->out_ops = NULL;
 
-	term->is_running = false;
+	term->is_acquired = false;
 
 	return term;
 }
@@ -241,13 +241,16 @@ static void sigwinch_handler(void *user_data)
 					&term->num_row, &term->num_col);
 }
 
-LIB_EXPORT int l_term_open(struct l_term *term)
+LIB_EXPORT int l_term_acquire(struct l_term *term)
 {
 	struct termios termios;
 	int retval = 0;
 
 	if (!term)
 		return -EINVAL;
+
+	if (term->is_acquired)
+		return -EALREADY;
 
 	/* Missing input or output file descriptor is a non-recoverable
 	 * situation at this point.
@@ -317,19 +320,20 @@ LIB_EXPORT int l_term_open(struct l_term *term)
 	IO_HANDLER(term, term->in_fd, 1, 0);
 	IO_HANDLER(term, term->out_fd, 0, 1);
 
-	term->is_running = true;
+	term->is_acquired = true;
 
 	return retval;
 }
 
-LIB_EXPORT int l_term_close(struct l_term *term)
+LIB_EXPORT int l_term_release(struct l_term *term)
 {
 	int retval = 0;
 
 	if (!term)
 		return -EINVAL;
 
-	term->is_running = false;
+	if (!term->is_acquired)
+		return -EALREADY;
 
 	IO_HANDLER(term, term->in_fd, 0, 0);
 	IO_HANDLER(term, term->out_fd, 0, 0);
@@ -346,6 +350,8 @@ LIB_EXPORT int l_term_close(struct l_term *term)
 	retval = term->out_ops->set_attr(term->out_fd, &term->out_termios);
 	if (retval < 0)
 		return retval;
+
+	term->is_acquired = false;
 
 	return retval;
 }
