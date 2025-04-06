@@ -234,18 +234,18 @@ static void update_debug(struct l_edit *edit)
 	l_free(tmp);
 }
 
-LIB_EXPORT bool l_edit_set_debug_handler(struct l_edit *edit,
+LIB_EXPORT int l_edit_set_debug_handler(struct l_edit *edit,
 				l_edit_debug_func_t handler, void *user_data)
 {
 	if (!edit)
-		return false;
+		return -EINVAL;
 
 	edit->debug_handler = handler;
 	edit->debug_data = user_data;
 
 	update_debug(edit);
 
-	return true;
+	return 0;
 }
 
 static void update_display(struct l_edit *edit)
@@ -275,36 +275,36 @@ static void update_display(struct l_edit *edit)
 	update_debug(edit);
 }
 
-LIB_EXPORT bool l_edit_set_display_handler(struct l_edit *edit,
+LIB_EXPORT int l_edit_set_display_handler(struct l_edit *edit,
 				l_edit_display_func_t handler, void *user_data)
 {
 	if (!edit)
-		return false;
+		return -EINVAL;
 
 	edit->display_handler = handler;
 	edit->display_data = user_data;
 
 	update_display(edit);
 
-	return true;
+	return 0;
 }
 
-LIB_EXPORT bool l_edit_set_max_display_length(struct l_edit *edit, size_t len)
+LIB_EXPORT int l_edit_set_max_display_length(struct l_edit *edit, size_t len)
 {
 	if (!edit)
-		return false;
+		return -EINVAL;
 
 	edit->max_display_len= len;
 
 	update_display(edit);
 
-	return true;
+	return 0;
 }
 
-LIB_EXPORT bool l_edit_set_max_input_length(struct l_edit *edit, size_t len)
+LIB_EXPORT int l_edit_set_max_input_length(struct l_edit *edit, size_t len)
 {
 	if (!edit)
-		return false;
+		return -EINVAL;
 
 	/* When switching to unlimited input length, then nothing is there
 	 * do to, except storing the value. Refreshing the display is not
@@ -313,7 +313,7 @@ LIB_EXPORT bool l_edit_set_max_input_length(struct l_edit *edit, size_t len)
 	if (len == 0) {
 		edit->max_input_len = 0;
 		update_debug(edit);
-		return true;
+		return 0;
 	}
 
 	edit->max_input_len = len;
@@ -334,13 +334,13 @@ LIB_EXPORT bool l_edit_set_max_input_length(struct l_edit *edit, size_t len)
 		update_debug(edit);
 	}
 
-	return true;
+	return 0;
 }
 
-LIB_EXPORT bool l_edit_set_history_size(struct l_edit *edit, unsigned int size)
+LIB_EXPORT int l_edit_set_history_size(struct l_edit *edit, unsigned int size)
 {
 	if (!edit)
-		return false;
+		return -EINVAL;
 
 	edit->max_list_size = size;
 
@@ -382,17 +382,17 @@ LIB_EXPORT bool l_edit_set_history_size(struct l_edit *edit, unsigned int size)
 
 	update_display(edit);
 
-	return true;
+	return 0;
 }
 
-LIB_EXPORT bool l_edit_refresh(struct l_edit *edit)
+LIB_EXPORT int l_edit_refresh(struct l_edit *edit)
 {
 	if (!edit)
-		return false;
+		return -EINVAL;
 
 	update_display(edit);
 
-	return true;
+	return 0;
 }
 
 LIB_EXPORT bool l_edit_is_empty(struct l_edit *edit)
@@ -463,10 +463,10 @@ LIB_EXPORT char *l_edit_enter(struct l_edit *edit)
 	return str;
 }
 
-LIB_EXPORT bool l_edit_reset(struct l_edit *edit, const char *input)
+LIB_EXPORT int l_edit_reset(struct l_edit *edit, const char *input)
 {
 	if (!edit)
-		return false;
+		return -EINVAL;
 
 	/* Reset the main item back to the head of the history before
 	 * resetting it or overwriting it with the provided input.
@@ -476,17 +476,17 @@ LIB_EXPORT bool l_edit_reset(struct l_edit *edit, const char *input)
 	reset_input_buf(edit->main, input);
 	update_display(edit);
 
-	return true;
+	return 0;
 }
 
-LIB_EXPORT bool l_edit_insert(struct l_edit *edit, wint_t ch)
+LIB_EXPORT int l_edit_insert(struct l_edit *edit, wint_t ch)
 {
 	if (!edit)
-		return false;
+		return -EINVAL;
 
 	/* Check if the max input length has already been reached */
 	if (edit->max_input_len && edit->main->len >= edit->max_input_len)
-		return false;
+		return -EALREADY;
 
 	/* This will magically grow the buffer to make room for at least
 	 * one wide character.
@@ -497,7 +497,7 @@ LIB_EXPORT bool l_edit_insert(struct l_edit *edit, wint_t ch)
 	 * string, there is nothing more to add.
 	 */
 	if (edit->main->len == SIZE_MAX)
-		return false;
+		return -ENOBUFS;
 
 	/* If the cursor is not at the end, the new character has to be
 	 * inserted and for thus the tail portion needs to move one
@@ -513,13 +513,13 @@ LIB_EXPORT bool l_edit_insert(struct l_edit *edit, wint_t ch)
 	edit->main->buf[edit->main->len] = L'\0';
 	update_display(edit);
 
-	return true;
+	return 0;
 }
 
-LIB_EXPORT bool l_edit_delete(struct l_edit *edit)
+LIB_EXPORT int l_edit_delete(struct l_edit *edit)
 {
 	if (!edit)
-		return false;
+		return -EINVAL;
 
 	/* If the cursor is not at the end, deletion of a character means
 	 * that the tail moves one character forward.
@@ -533,13 +533,13 @@ LIB_EXPORT bool l_edit_delete(struct l_edit *edit)
 		update_display(edit);
 	}
 
-	return true;
+	return 0;
 }
 
-LIB_EXPORT bool l_edit_delete_all(struct l_edit *edit)
+LIB_EXPORT int l_edit_delete_all(struct l_edit *edit)
 {
 	if (!edit)
-		return false;
+		return -EINVAL;
 
 	/* Keep the buffer allocated, but reset it to an empty string */
 	edit->main->buf[0] = L'\0';
@@ -547,26 +547,26 @@ LIB_EXPORT bool l_edit_delete_all(struct l_edit *edit)
 	edit->main->len = 0;
 	update_display(edit);
 
-	return true;
+	return 0;
 }
 
-LIB_EXPORT bool l_edit_truncate(struct l_edit *edit)
+LIB_EXPORT int l_edit_truncate(struct l_edit *edit)
 {
 	if (!edit)
-		return false;
+		return -EINVAL;
 
 	/* Keep the buffer allocated, but truncate after the cursor */
 	edit->main->buf[edit->main->pos] = L'\0';
 	edit->main->len = edit->main->pos;
 	update_display(edit);
 
-	return true;
+	return 0;
 }
 
-LIB_EXPORT bool l_edit_backspace(struct l_edit *edit)
+LIB_EXPORT int l_edit_backspace(struct l_edit *edit)
 {
 	if (!edit)
-		return false;
+		return -EINVAL;
 
 	/* If the cursor is not at the beginning, the backspace operation
 	 * means that tail has to move one character forward.
@@ -581,13 +581,13 @@ LIB_EXPORT bool l_edit_backspace(struct l_edit *edit)
 		update_display(edit);
 	}
 
-	return true;
+	return 0;
 }
 
-LIB_EXPORT bool l_edit_move_left(struct l_edit *edit)
+LIB_EXPORT int l_edit_move_left(struct l_edit *edit)
 {
 	if (!edit)
-		return false;
+		return -EINVAL;
 
 	/* If the cursor is not at the beginning, then move it one back */
 	if (edit->main->pos > 0) {
@@ -595,13 +595,13 @@ LIB_EXPORT bool l_edit_move_left(struct l_edit *edit)
 		update_display(edit);
 	}
 
-	return true;
+	return 0;
 }
 
-LIB_EXPORT bool l_edit_move_right(struct l_edit *edit)
+LIB_EXPORT int l_edit_move_right(struct l_edit *edit)
 {
 	if (!edit)
-		return false;
+		return -EINVAL;
 
 	/* If the cursor is not at the end, then move it one forward */
 	if (edit->main->pos != edit->main->len) {
@@ -609,13 +609,13 @@ LIB_EXPORT bool l_edit_move_right(struct l_edit *edit)
 		update_display(edit);
 	}
 
-	return true;
+	return 0;
 }
 
-LIB_EXPORT bool l_edit_move_home(struct l_edit *edit)
+LIB_EXPORT int l_edit_move_home(struct l_edit *edit)
 {
 	if (!edit)
-		return false;
+		return -EINVAL;
 
 	/* If the cursor is not at the beginning, move it there */
 	if (edit->main->pos != 0) {
@@ -623,13 +623,13 @@ LIB_EXPORT bool l_edit_move_home(struct l_edit *edit)
 		update_display(edit);
 	}
 
-	return true;
+	return 0;
 }
 
-LIB_EXPORT bool l_edit_move_end(struct l_edit *edit)
+LIB_EXPORT int l_edit_move_end(struct l_edit *edit)
 {
 	if (!edit)
-		return false;
+		return -EINVAL;
 
 	/* If the cursor is not at the end, move it there */
 	if (edit->main->pos != edit->main->len) {
@@ -637,13 +637,13 @@ LIB_EXPORT bool l_edit_move_end(struct l_edit *edit)
 		update_display(edit);
 	}
 
-	return true;
+	return 0;
 }
 
-LIB_EXPORT bool l_edit_history_backward(struct l_edit *edit)
+LIB_EXPORT int l_edit_history_backward(struct l_edit *edit)
 {
 	if (!edit)
-		return false;
+		return -EINVAL;
 
 	/* If there is another item in the history list, move the main
 	 * item to that and enforce the max input length on the new item.
@@ -654,15 +654,15 @@ LIB_EXPORT bool l_edit_history_backward(struct l_edit *edit)
 		update_display(edit);
 	}
 
-	return true;
+	return 0;
 }
 
-LIB_EXPORT bool l_edit_history_forward(struct l_edit *edit)
+LIB_EXPORT int l_edit_history_forward(struct l_edit *edit)
 {
 	struct input_buf *buf;
 
 	if (!edit)
-		return false;
+		return -EINVAL;
 
 	/* Walk the list of history items until the current main item
 	 * matches the next item, then move the main item to current
@@ -677,10 +677,10 @@ LIB_EXPORT bool l_edit_history_forward(struct l_edit *edit)
 		}
 	}
 
-	return true;
+	return 0;
 }
 
-LIB_EXPORT bool l_edit_history_load(struct l_edit *edit, const char *pathname)
+LIB_EXPORT int l_edit_history_load(struct l_edit *edit, const char *pathname)
 {
 	static size_t initial_line_size = 16;
 	struct input_buf *buf;
@@ -689,17 +689,17 @@ LIB_EXPORT bool l_edit_history_load(struct l_edit *edit, const char *pathname)
 	int fd;
 
 	if (!edit)
-		return false;
+		return -EINVAL;
 
 	if (!pathname)
-		return false;
+		return -EINVAL;
 
 	if (!edit->max_list_size)
-		return true;
+		return 0;
 
 	fd = open(pathname, O_RDONLY);
 	if (fd < 0)
-		return false;
+		return -errno;
 
 	str = l_string_new(initial_line_size);
 
@@ -746,23 +746,23 @@ LIB_EXPORT bool l_edit_history_load(struct l_edit *edit, const char *pathname)
 	edit->list_count = count;
 	update_display(edit);
 
-	return true;
+	return 0;
 }
 
-LIB_EXPORT bool l_edit_history_save(struct l_edit *edit, const char *pathname)
+LIB_EXPORT int l_edit_history_save(struct l_edit *edit, const char *pathname)
 {
 	struct input_buf *buf;
 	int fd;
 
 	if (!edit)
-		return false;
+		return -EINVAL;
 
 	if (!pathname)
-		return false;
+		return -EINVAL;
 
 	fd = open(pathname, O_CREAT|O_WRONLY|O_TRUNC, S_IRUSR|S_IWUSR);
 	if (fd < 0)
-		return false;
+		return -errno;
 
 	buf = edit->head->next;
 
@@ -781,5 +781,5 @@ LIB_EXPORT bool l_edit_history_save(struct l_edit *edit, const char *pathname)
 
 	close(fd);
 
-	return true;
+	return 0;
 }
