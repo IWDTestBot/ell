@@ -652,6 +652,7 @@ global:
 	l_term_set_output;
 	l_term_set_output_stdout;
 	l_term_set_key_handler;
+	l_term_is_acquired;
 	l_term_acquire;
 	l_term_release;
 	l_term_io_callback;

@@ -241,6 +241,14 @@ static void sigwinch_handler(void *user_data)
 					&term->num_row, &term->num_col);
 }
 
+LIB_EXPORT bool l_term_is_acquired(struct l_term *term)
+{
+	if (!term)
+		return false;
+
+	return term->is_acquired;
+}
+
 LIB_EXPORT int l_term_acquire(struct l_term *term)
 {
 	struct termios termios;

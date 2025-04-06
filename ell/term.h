@@ -44,6 +44,8 @@ typedef void (*l_term_key_func_t) (struct l_term *term, wint_t wch, void *user_d
 int  l_term_set_key_handler(struct l_term *term,
 				l_term_key_func_t handler, void *user_data);
 
+bool l_term_is_acquired(struct l_term *term);
+
 int  l_term_acquire(struct l_term *term);
 int  l_term_release(struct l_term *term);
 
