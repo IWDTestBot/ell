@@ -104,10 +104,16 @@ static void reset_input_buf(struct input_buf *buf, const char *input)
 	if (input) {
 		size_t len;
 
-		/* Calculate the required size of the wide character string
-		 * including its terminating null character.
+		/* Calculate the required size of the wide character string.
 		 */
-		len = mbstowcs(NULL, input, 0) + 1;
+		len = mbstowcs(NULL, input, 0);
+		if (len == SIZE_MAX)
+			return;
+
+		/* Increase the size of the wide character string by one to
+		 * cover its terminating null character.
+		 */
+		len += 1;
 
 		/* If the current buffer is to small, then allocate a new
 		 * one and free the previous one. Since in most cases the
@@ -125,6 +131,9 @@ static void reset_input_buf(struct input_buf *buf, const char *input)
 		 * and then move the cursor to the end.
 		 */
 		buf->len = mbstowcs(buf->buf, input, buf->size);
+		if (buf->len == SIZE_MAX)
+			return;
+
 		buf->pos = buf->len;
 	} else {
 		/* Reset the main item to an empty string */
@@ -197,6 +206,7 @@ static void update_debug(struct l_edit *edit)
 	struct l_string *str;
 	char *tmp;
 	size_t len;
+    size_t status;
 	unsigned int pos = 0;
 
 	if (!edit->debug_handler)
@@ -218,9 +228,14 @@ static void update_debug(struct l_edit *edit)
 
 	buf = edit->head;
 	while (buf) {
-		len = wcstombs(NULL, buf->buf, 0) + 1;
+		len = wcstombs(NULL, buf->buf, 0);
+		if (len == SIZE_MAX)
+			return;
+		len += 1;
 		tmp = l_malloc(len);
-		wcstombs(tmp, buf->buf, len);
+		status = wcstombs(tmp, buf->buf, len);
+		if (status == SIZE_MAX)
+			return;
 		l_string_append_printf(str, "%3u %s\n", pos, tmp);
 		l_free(tmp);
 		pos++;
@@ -415,9 +430,18 @@ LIB_EXPORT int l_edit_enter(struct l_edit *edit, char **line)
 	/* Convert the wide character string into the multibyte string
 	 * representation like UTF-8 for example.
 	 */
-	len = wcstombs(NULL, edit->main->buf, 0) + 1;
+	len = wcstombs(NULL, edit->main->buf, 0);
+	if (len == SIZE_MAX)
+		return -EILSEQ;
+
+	len += 1;
+
 	str = l_malloc(len);
-	wcstombs(str, edit->main->buf, len);
+	if (!str)
+		return -ENOMEM;
+
+	if (wcstombs(str, edit->main->buf, len) == SIZE_MAX)
+		return -EILSEQ;
 
 	if (edit->main->len > 0) {
 		/* If the current entered item is different from the first
@@ -775,10 +799,21 @@ LIB_EXPORT int l_edit_history_save(struct l_edit *edit, const char *pathname)
 	while (buf) {
 		char *tmp;
 		size_t len;
+		size_t status;
 
-		len = wcstombs(NULL, buf->buf, 0) + 1;
+		len = wcstombs(NULL, buf->buf, 0);
+		if (len == SIZE_MAX) {
+			close(fd);
+			return -EILSEQ;
+		}
+		len += 1;
 		tmp = l_malloc(len);
-		wcstombs(tmp, buf->buf, len);
+		status = wcstombs(tmp, buf->buf, len);
+		if (status == SIZE_MAX) {
+			l_free(tmp);
+			close(fd);
+			return -EILSEQ;
+		}
 		dprintf(fd, "%s\n", tmp);
 		l_free(tmp);
 
