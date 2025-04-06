@@ -36,7 +36,7 @@ int  l_edit_set_max_input_length(struct l_edit *edit, size_t len);
 int  l_edit_set_history_size(struct l_edit *edit, unsigned int size);
 int  l_edit_refresh(struct l_edit *edit);
 bool l_edit_is_empty(struct l_edit *edit);
-char *l_edit_enter(struct l_edit *edit);
+int  l_edit_enter(struct l_edit *edit, char **line);
 int  l_edit_reset(struct l_edit *edit, const char *input);
 int  l_edit_insert(struct l_edit *edit, wint_t ch);
 int  l_edit_delete(struct l_edit *edit);

@@ -403,14 +403,14 @@ LIB_EXPORT bool l_edit_is_empty(struct l_edit *edit)
 	return (edit->main->len == 0);
 }
 
-LIB_EXPORT char *l_edit_enter(struct l_edit *edit)
+LIB_EXPORT int l_edit_enter(struct l_edit *edit, char **line)
 {
 	struct input_buf *buf;
 	char *str;
 	size_t len;
 
 	if (!edit)
-		return NULL;
+		return -EINVAL;
 
 	/* Convert the wide character string into the multibyte string
 	 * representation like UTF-8 for example.
@@ -458,9 +458,15 @@ LIB_EXPORT char *l_edit_enter(struct l_edit *edit)
 	}
 
 	edit->main = edit->head;
+
 	update_display(edit);
 
-	return str;
+	if (line)
+		*line = str;
+	else
+		l_free(str);
+
+	return 0;
 }
 
 LIB_EXPORT int l_edit_reset(struct l_edit *edit, const char *input)
