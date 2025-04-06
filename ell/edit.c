@@ -229,7 +229,7 @@ static void update_debug(struct l_edit *edit)
 
 	tmp = l_string_unwrap(str);
 
-	edit->debug_handler(tmp, edit->debug_data);
+	edit->debug_handler(edit, tmp, edit->debug_data);
 
 	l_free(tmp);
 }
@@ -270,7 +270,7 @@ static void update_display(struct l_edit *edit)
 			len--;
 	}
 
-	edit->display_handler(buf, len, pos, edit->display_data);
+	edit->display_handler(edit, buf, len, pos, edit->display_data);
 
 	update_debug(edit);
 }

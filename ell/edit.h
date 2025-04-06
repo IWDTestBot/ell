@@ -20,12 +20,12 @@ struct l_edit;
 struct l_edit *l_edit_new(void);
 void l_edit_free(struct l_edit *edit);
 
-typedef void (*l_edit_debug_func_t) (const char *str, void *user_data);
+typedef void (*l_edit_debug_func_t) (struct l_edit *edit, const char *str, void *user_data);
 
 bool l_edit_set_debug_handler(struct l_edit *edit,
 				l_edit_debug_func_t handler, void *user_data);
 
-typedef void (*l_edit_display_func_t) (const wchar_t *wstr, size_t wlen,
+typedef void (*l_edit_display_func_t) (struct l_edit *edit, const wchar_t *wstr, size_t wlen,
 						size_t pos, void *user_data);
 
 bool l_edit_set_display_handler(struct l_edit *edit,
