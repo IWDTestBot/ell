@@ -8,3 +8,4 @@ Description: Embedded Linux library
 Version: @VERSION@
 Libs: -L${libdir} -lell
 Cflags: -I${includedir}
+License: LGPL-2.1-or-later
