@@ -30,6 +30,11 @@ static void test_unsupported(const void *data)
 	assert(!checksum);
 }
 
+static bool md4_precheck(const void *data)
+{
+	return l_checksum_is_supported(L_CHECKSUM_MD4, false);
+}
+
 static void test_md4(const void *data)
 {
 	struct l_checksum *checksum;
@@ -51,6 +56,11 @@ static void test_md4(const void *data)
 
 	l_free(expected);
 	l_checksum_free(checksum);
+}
+
+static bool md5_precheck(const void *data)
+{
+	return l_checksum_is_supported(L_CHECKSUM_MD5, false);
 }
 
 static void test_md5(const void *data)
@@ -76,6 +86,11 @@ static void test_md5(const void *data)
 	l_checksum_free(checksum);
 }
 
+static bool sha1_precheck(const void *data)
+{
+	return l_checksum_is_supported(L_CHECKSUM_SHA1, false);
+}
+
 static void test_sha1(const void *data)
 {
 	struct l_checksum *checksum;
@@ -97,6 +112,11 @@ static void test_sha1(const void *data)
 
 	l_free(expected);
 	l_checksum_free(checksum);
+}
+
+static bool sha256_precheck(const void *data)
+{
+	return l_checksum_is_supported(L_CHECKSUM_SHA256, false);
 }
 
 static void test_sha256(const void *data)
@@ -484,6 +504,13 @@ static const struct sha_test sha3_512_test4 = {
 		  "ed0fb440d187f382270cb455f21dd185",
 };
 
+static bool sha_precheck(const void *data)
+{
+	const struct sha_test *test = data;
+
+	return l_checksum_is_supported(test->type, false);
+}
+
 static void test_sha(const void *data)
 {
 	const struct sha_test *test = data;
@@ -833,6 +860,13 @@ static const struct hmac_sha_test hmac_sha512_test7 = {
 		  "134676fb6de0446065c97440fa8c6a58",
 };
 
+static bool hmac_sha_precheck(const void *data)
+{
+	const struct hmac_sha_test *test = data;
+
+	return l_checksum_is_supported(test->type, true);
+}
+
 static void test_hmac_sha(const void *data)
 {
 	const struct hmac_sha_test *test = data;
@@ -1004,6 +1038,11 @@ static const struct cmac_aes_test cmac_aes128_btmesh2 = {
 	.hash	= "2ea6467aa3378c4c545eda62935b9b86",
 };
 
+static bool cmac_aes_precheck(const void *data)
+{
+	return l_checksum_cmac_aes_supported();
+}
+
 static void test_cmac_aes(const void *data)
 {
 	const struct cmac_aes_test *test = data;
@@ -1046,14 +1085,14 @@ static void test_cmac_aes(const void *data)
 	l_free(key);
 }
 
-#define add_sha_test(name, data) l_test_add_data_func(name, data, \
-					test_sha, L_TEST_FLAG_ALLOW_FAILURE)
+#define add_sha_test(name, data) l_test_add_data_func_precheck(name, \
+					data, test_sha, sha_precheck, 0)
 
-#define add_hmac_sha_test(name, data) l_test_add_data_func(name, data, \
-					test_hmac_sha, L_TEST_FLAG_ALLOW_FAILURE)
+#define add_hmac_sha_test(name, data) l_test_add_data_func_precheck(name, \
+					data, test_hmac_sha, hmac_sha_precheck, 0)
 
-#define add_cmac_aes_test(name, data) l_test_add_data_func(name, data, \
-					test_cmac_aes, L_TEST_FLAG_ALLOW_FAILURE)
+#define add_cmac_aes_test(name, data) l_test_add_data_func_precheck(name, \
+					data, test_cmac_aes, cmac_aes_precheck, 0)
 
 int main(int argc, char *argv[])
 {
@@ -1061,15 +1100,15 @@ int main(int argc, char *argv[])
 
 	l_test_add("unsupported", test_unsupported, NULL);
 
-	l_test_add_func("md4-1", test_md4, L_TEST_FLAG_ALLOW_FAILURE);
-	l_test_add_func("md5-1", test_md5, L_TEST_FLAG_ALLOW_FAILURE);
-	l_test_add_func("sha1-1", test_sha1, L_TEST_FLAG_ALLOW_FAILURE);
-	l_test_add_func("sha256-1", test_sha256, L_TEST_FLAG_ALLOW_FAILURE);
+	l_test_add_func_precheck("md4-1", test_md4, md4_precheck, 0);
+	l_test_add_func_precheck("md5-1", test_md5, md5_precheck, 0);
+	l_test_add_func_precheck("sha1-1", test_sha1, sha1_precheck, 0);
+	l_test_add_func_precheck("sha256-1", test_sha256, sha256_precheck, 0);
 
-	l_test_add_func("checksum reset", test_reset,
-						L_TEST_FLAG_ALLOW_FAILURE);
-	l_test_add_func("checksum updatev", test_updatev,
-						L_TEST_FLAG_ALLOW_FAILURE);
+	l_test_add_func_precheck("checksum reset", test_reset,
+							md5_precheck, 0);
+	l_test_add_func_precheck("checksum updatev", test_updatev,
+							sha1_precheck, 0);
 
 	add_sha_test("SHA-1/1", &sha1_test1);
 	add_sha_test("SHA-1/2", &sha1_test2);
