@@ -34,6 +34,11 @@ static void test_unsupported(const void *data)
 	assert(!cipher);
 }
 
+static bool aes_precheck(const void *data)
+{
+	return l_cipher_is_supported(L_CIPHER_AES);
+}
+
 static void test_aes(const void *data)
 {
 	struct l_cipher *cipher;
@@ -60,6 +65,11 @@ static void test_aes(const void *data)
 	assert(!r);
 
 	l_cipher_free(cipher);
+}
+
+static bool aes_ctr_precheck(const void *data)
+{
+	return l_cipher_is_supported(L_CIPHER_AES_CTR);
 }
 
 static void test_aes_ctr(const void *data)
@@ -225,6 +235,13 @@ static const struct cipher_test ctr_aes256_nist = {
 			  "2B0930DAA23DE94CE87017BA2D84988D"
 			  "DFC9C58DB67AADA613C2DD08457941A6",
 };
+
+static bool cipher_precheck(const void *data)
+{
+	const struct cipher_test *test = data;
+
+	return l_cipher_is_supported(test->type);
+}
 
 static void test_encrypt(const void *data)
 {
@@ -462,8 +479,16 @@ static const struct aead_test_vector gcm_test6 = {
 	.tag = "f2a9a836e155106aa8dcd618e4099aaa",
 };
 
+static bool aead_cipher_precheck(const void *data)
+{
+	const struct aead_test_vector *tv = data;
+
+	return l_aead_cipher_is_supported(tv->type);
+}
+
 static void test_aead(const void *data)
 {
+	const struct aead_test_vector *tv = data;
 	struct l_aead_cipher *cipher;
 	char *encbuf;
 	size_t encbuflen;
@@ -471,7 +496,6 @@ static void test_aead(const void *data)
 	size_t decbuflen;
 	int r;
 	bool success;
-	const struct aead_test_vector *tv = data;
 
 	size_t ptlen = 0;
 	uint8_t *pt = NULL;
@@ -613,10 +637,13 @@ static const struct cipher_test des_test2 = {
 			  "828AC9B453E0E653",
 };
 
-#define add_encrypt_test(name, data) l_test_add_data_func(name, data, \
-					test_encrypt, L_TEST_FLAG_ALLOW_FAILURE)
-#define add_decrypt_test(name, data) l_test_add_data_func(name, data, \
-					test_decrypt, L_TEST_FLAG_ALLOW_FAILURE)
+#define add_encrypt_test(name, data) l_test_add_data_func_precheck(name, \
+					data, test_encrypt, cipher_precheck, 0)
+#define add_decrypt_test(name, data) l_test_add_data_func_precheck(name, \
+					data, test_decrypt, cipher_precheck, 0)
+
+#define add_aead_test(name, data) l_test_add_data_func_precheck(name, data, \
+					test_aead, aead_cipher_precheck, 0);
 
 int main(int argc, char *argv[])
 {
@@ -624,23 +651,19 @@ int main(int argc, char *argv[])
 
 	l_test_add("unsupported", test_unsupported, NULL);
 
-	l_test_add_func("aes", test_aes, L_TEST_FLAG_ALLOW_FAILURE);
-	l_test_add_func("aes_ctr", test_aes_ctr, L_TEST_FLAG_ALLOW_FAILURE);
+	l_test_add_func_precheck("aes", test_aes, aes_precheck, 0);
+	l_test_add_func_precheck("aes_ctr", test_aes_ctr, aes_ctr_precheck, 0);
 
-	if (l_aead_cipher_is_supported(L_AEAD_CIPHER_AES_CCM)) {
-		l_test_add("aes_ccm long nonce", test_aead, &ccm_long_nonce);
-		l_test_add("aes_ccm short nonce", test_aead, &ccm_short_nonce);
-		l_test_add("aes_ccm no AAD", test_aead, &ccm_no_aad);
-	}
+	add_aead_test("aes_ccm long nonce", &ccm_long_nonce);
+	add_aead_test("aes_ccm short nonce", &ccm_short_nonce);
+	add_aead_test("aes_ccm no AAD", &ccm_no_aad);
 
-	if (l_aead_cipher_is_supported(L_AEAD_CIPHER_AES_GCM)) {
-		l_test_add("aes_gcm test 1", test_aead, &gcm_test1);
-		l_test_add("aes_gcm test 2", test_aead, &gcm_test2);
-		l_test_add("aes_gcm test 3", test_aead, &gcm_test3);
-		l_test_add("aes_gcm test 4", test_aead, &gcm_test4);
-		l_test_add("aes_gcm test 5", test_aead, &gcm_test5);
-		l_test_add("aes_gcm test 6", test_aead, &gcm_test6);
-	}
+	add_aead_test("aes_gcm test 1", &gcm_test1);
+	add_aead_test("aes_gcm test 2", &gcm_test2);
+	add_aead_test("aes_gcm test 3", &gcm_test3);
+	add_aead_test("aes_gcm test 4", &gcm_test4);
+	add_aead_test("aes_gcm test 5", &gcm_test5);
+	add_aead_test("aes_gcm test 6", &gcm_test6);
 
 	add_encrypt_test("ARC4/encrypt/test 1", &arc4_test1);
 	add_decrypt_test("ARC4/decrypt/test 1", &arc4_test1);
