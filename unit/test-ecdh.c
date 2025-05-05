@@ -44,6 +44,11 @@ bool __wrap_l_getrandom(void *buf, size_t len)
 	return true;
 }
 
+static bool getrandom_precheck(const void *data)
+{
+	return l_getrandom_is_supported();
+}
+
 /*
  * Tests the most basic case. Generate two full public keys and use to create
  * two identical shared secrets.
@@ -408,9 +413,9 @@ static void test_vector_p521(const void *data)
 	l_ecc_scalar_free(b_shared);
 }
 
-#define add_basic_test(name, group) l_test_add_data_func(name, \
+#define add_basic_test(name, group) l_test_add_data_func_precheck(name, \
 					L_UINT_TO_PTR(group), \
-					test_basic, L_TEST_FLAG_ALLOW_FAILURE)
+					test_basic, getrandom_precheck, 0)
 
 int main(int argc, char *argv[])
 {
