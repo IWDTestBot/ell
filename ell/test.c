@@ -327,7 +327,7 @@ static void run_next_test(void *user_data)
 		printf("TEST: %s\n", test->name);
 
 	if (test->precheck) {
-		if (!test->precheck()) {
+		if (!test->precheck(test->data)) {
 			if (tap_enable)
 				printf("ok %u - %s # SKIP not-supported\n",
 							test->num, test->name);

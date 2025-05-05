@@ -18,7 +18,7 @@ void l_test_init(int *argc, char ***argv);
 int l_test_run(void);
 
 typedef void (*l_test_func_t) (const void *data);
-typedef bool (*l_test_precheck_t) (void);
+typedef bool (*l_test_precheck_t) (const void *data);
 
 #define L_TEST_FLAG_FAILURE_EXPECTED		(1 << 1)
 #define L_TEST_FLAG_ALLOW_FAILURE		(1 << 2)

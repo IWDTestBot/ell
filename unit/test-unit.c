@@ -77,12 +77,12 @@ static void test_fail(const void *data)
 	assert(0);
 }
 
-static bool precheck_success(void)
+static bool precheck_success(const void *data)
 {
 	return true;
 }
 
-static bool precheck_failure(void)
+static bool precheck_failure(const void *data)
 {
 	return false;
 }
