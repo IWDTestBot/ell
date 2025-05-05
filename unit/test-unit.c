@@ -67,6 +67,26 @@ static void test_dbus_session_bus(const void *data)
 	l_dbus_set_disconnect_handler(dbus, disconnect_callback, NULL, NULL);
 }
 
+static void test_ok(const void *data)
+{
+	assert(1);
+}
+
+static void test_fail(const void *data)
+{
+	assert(0);
+}
+
+static bool precheck_success(void)
+{
+	return true;
+}
+
+static bool precheck_failure(void)
+{
+	return false;
+}
+
 int main(int argc, char *argv[])
 {
 	l_test_init(&argc, &argv);
@@ -83,6 +103,14 @@ int main(int argc, char *argv[])
 	l_test_add_func("dbus-session-bus", test_dbus_session_bus,
 					L_TEST_FLAG_ALLOW_FAILURE |
 					L_TEST_FLAG_REQUIRE_DBUS_SESSION_BUS);
+
+	l_test_add_func_precheck("add-precheck-success", test_ok,
+							precheck_success, 0);
+	l_test_add_func_precheck("add-precheck-failure", test_ok,
+							precheck_failure, 0);
+	l_test_add_func_precheck("add-precheck-success-fail",
+						test_fail, precheck_success,
+						L_TEST_FLAG_FAILURE_EXPECTED);
 
 	return l_test_run();
 }
