@@ -646,6 +646,21 @@ static void test_key_crypto(const void *data)
 	l_key_free(pubkey);
 }
 
+static bool key_dh_precheck(const void *data)
+{
+	return l_key_is_supported(L_KEY_FEATURE_DH);
+}
+
+static bool key_restrict_precheck(const void *data)
+{
+	return l_key_is_supported(L_KEY_FEATURE_RESTRICT);
+}
+
+static bool key_crypto_precheck(const void *data)
+{
+	return l_key_is_supported(L_KEY_FEATURE_CRYPTO);
+}
+
 int main(int argc, char *argv[])
 {
 	l_test_init(&argc, &argv);
@@ -654,30 +669,25 @@ int main(int argc, char *argv[])
 
 	l_test_add_func("user key", test_user, 0);
 
-	if (l_key_is_supported(L_KEY_FEATURE_DH)) {
-		l_test_add_data_func("Diffie-Hellman 1",
+	l_test_add_data_func_precheck("Diffie-Hellman 1",
 						&dh_valid1, test_dh,
-						L_TEST_FLAG_ALLOW_FAILURE);
-		l_test_add_data_func("Diffie-Hellman 2",
+						key_dh_precheck, 0);
+	l_test_add_data_func_precheck("Diffie-Hellman 2",
 						&dh_valid2, test_dh,
-						L_TEST_FLAG_ALLOW_FAILURE);
-		l_test_add_data_func("Diffie-Hellman 3",
+						key_dh_precheck, 0);
+	l_test_add_data_func_precheck("Diffie-Hellman 3",
 						&dh_degenerate, test_dh,
-						L_TEST_FLAG_ALLOW_FAILURE);
-	}
+						key_dh_precheck, 0);
 
-	l_test_add_func("simple keyring", test_simple_keyring,
-						L_TEST_FLAG_ALLOW_FAILURE);
+	l_test_add_func("simple keyring", test_simple_keyring, 0);
 
-	if (l_key_is_supported(L_KEY_FEATURE_RESTRICT)) {
-		l_test_add_func("trusted keyring", test_trusted_keyring,
-						L_TEST_FLAG_ALLOW_FAILURE);
-		l_test_add_func("trust chain", test_trust_chain,
-						L_TEST_FLAG_ALLOW_FAILURE);
-	}
+	l_test_add_func_precheck("trusted keyring", test_trusted_keyring,
+						key_restrict_precheck, 0);
+	l_test_add_func_precheck("trust chain", test_trust_chain,
+						key_restrict_precheck, 0);
 
-	if (l_key_is_supported(L_KEY_FEATURE_CRYPTO))
-		l_test_add_func("key crypto", test_key_crypto,
+	l_test_add_func_precheck("key crypto", test_key_crypto,
+						key_crypto_precheck,
 						L_TEST_FLAG_ALLOW_FAILURE);
 
 	return l_test_run();
