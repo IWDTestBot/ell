@@ -55,6 +55,7 @@ struct test {
 	const char *name;
 	const void *data;
 	l_test_func_t function;
+	l_test_precheck_t precheck;
 	unsigned long flags;
 	unsigned int num;
 	struct test *next;
@@ -260,7 +261,7 @@ static void dbus_ready(void *user_data)
 	if (!run_all && (test->flags & L_TEST_FLAG_EXPENSIVE_COMPUTATION)) {
 		/*
 		 * Abort test cases with long running computation task
-		 * to fail and with the be gracefully skipped
+		 * to fail and with that be gracefully skipped
 		 */
 		abort();
 		return;
@@ -314,15 +315,34 @@ static void test_teardown(struct test *test)
 
 static void run_next_test(void *user_data)
 {
+	struct test *test = test_head;
 	pid_t pid;
 
-	if (!test_head) {
+	if (!test) {
 		testing_active = false;
 		return;
 	}
 
 	if (!tap_enable)
-		printf("TEST: %s\n", test_head->name);
+		printf("TEST: %s\n", test->name);
+
+	if (test->precheck) {
+		if (!test->precheck()) {
+			if (tap_enable)
+				printf("ok %u - %s # SKIP not-supported\n",
+							test->num, test->name);
+
+			test_head = test->next;
+			free(test);
+
+			if (!test_head)
+				test_tail = NULL;
+
+			/* Trigger the main pollfd loop */
+			kill(getpid(), SIGUSR1);
+			return;
+		}
+	}
 
 	pid = fork();
 	if (pid < 0) {
@@ -341,9 +361,9 @@ static void run_next_test(void *user_data)
 		/* Close stdout to not interfere with TAP */
 		close(STDOUT_FILENO);
 
-		test_setup(test_head);
-		test_function(test_head);
-		test_teardown(test_head);
+		test_setup(test);
+		test_function(test);
+		test_teardown(test);
 
 		exit(EXIT_SUCCESS);
 	}
@@ -439,6 +459,7 @@ LIB_EXPORT int l_test_run(void)
 	sigaddset(&sig_mask, SIGINT);
 	sigaddset(&sig_mask, SIGTERM);
 	sigaddset(&sig_mask, SIGCHLD);
+	sigaddset(&sig_mask, SIGUSR1);
 
 	/*
 	 * Block signals so that they aren't handled according to their
@@ -489,6 +510,9 @@ LIB_EXPORT int l_test_run(void)
 		case SIGCHLD:
 			sigchld_handler(NULL);
 			break;
+		case SIGUSR1:
+			run_next_test(NULL);
+			break;
 		}
 	}
 
@@ -499,32 +523,10 @@ LIB_EXPORT int l_test_run(void)
 	return exit_status;
 }
 
-/**
- * l_test_add_data_func:
- * @name: test name
- * @function: test function
- * @flags: test flags;
- *
- * Add new test.
- **/
-LIB_EXPORT void l_test_add_func(const char *name, l_test_func_t function,
-							unsigned long flags)
-{
-	l_test_add_data_func(name, NULL, function, flags);
-}
-
-/**
- * l_test_add_data_func:
- * @name: test name
- * @function: test function
- * @data: test data
- * @flags: test flags;
- *
- * Add new test.
- **/
-LIB_EXPORT void l_test_add_data_func(const char *name, const void *data,
-							l_test_func_t function,
-							unsigned long flags)
+static void common_add(const char *name, const void *data,
+						l_test_func_t function,
+						l_test_precheck_t precheck,
+						unsigned long flags)
 {
 	struct test *test;
 
@@ -539,6 +541,7 @@ LIB_EXPORT void l_test_add_data_func(const char *name, const void *data,
 	test->name = name;
 	test->data = data;
 	test->function = function;
+	test->precheck = precheck;
 	test->flags = flags;
 	test->num = ++test_count;
 	test->next = NULL;
@@ -553,6 +556,73 @@ LIB_EXPORT void l_test_add_data_func(const char *name, const void *data,
 }
 
 /**
+ * l_test_add_func_precheck:
+ * @name: test name
+ * @data: test data
+ * @function: test function
+ * @precheck: precheck function
+ * @flags: test flags;
+ *
+ * Add new test.
+ **/
+LIB_EXPORT void l_test_add_func_precheck(const char *name,
+						l_test_func_t function,
+						l_test_precheck_t precheck,
+						unsigned long flags)
+{
+	common_add(name, NULL, function, precheck, flags);
+}
+
+/**
+ * l_test_add_data_func_precheck:
+ * @name: test name
+ * @data: test data
+ * @function: test function
+ * @precheck: precheck function
+ * @flags: test flags;
+ *
+ * Add new test.
+ **/
+LIB_EXPORT void l_test_add_data_func_precheck(const char *name,
+						const void *data,
+						l_test_func_t function,
+						l_test_precheck_t precheck,
+						unsigned long flags)
+{
+	common_add(name, data, function, precheck, flags);
+}
+
+/**
+ * l_test_add_data_func:
+ * @name: test name
+ * @function: test function
+ * @flags: test flags;
+ *
+ * Add new test.
+ **/
+LIB_EXPORT void l_test_add_func(const char *name, l_test_func_t function,
+							unsigned long flags)
+{
+	common_add(name, NULL, function, NULL, flags);
+}
+
+/**
+ * l_test_add_data_func:
+ * @name: test name
+ * @data: test data
+ * @function: test function
+ * @flags: test flags;
+ *
+ * Add new test.
+ **/
+LIB_EXPORT void l_test_add_data_func(const char *name, const void *data,
+							l_test_func_t function,
+							unsigned long flags)
+{
+	common_add(name, data, function, NULL, flags);
+}
+
+/**
  * l_test_add:
  * @name: test name
  * @function: test function
@@ -563,7 +633,7 @@ LIB_EXPORT void l_test_add_data_func(const char *name, const void *data,
 LIB_EXPORT void l_test_add(const char *name, l_test_func_t function,
 							const void *data)
 {
-	l_test_add_data_func(name, data, function, default_flags);
+	common_add(name, data, function, NULL, default_flags);
 }
 
 /**

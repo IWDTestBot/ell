@@ -37,6 +37,8 @@ global:
 	l_test_add;
 	l_test_add_func;
 	l_test_add_data_func;
+	l_test_add_func_precheck;
+	l_test_add_data_func_precheck;
 	l_test_set_default_flags;
 	/* strv */
 	l_strfreev;
