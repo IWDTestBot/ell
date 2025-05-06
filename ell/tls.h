@@ -90,6 +90,11 @@ void l_tls_write(struct l_tls *tls, const uint8_t *data, size_t len);
 /* Submit TLS payload from underlying transport to be decrypted */
 void l_tls_handle_rx(struct l_tls *tls, const uint8_t *data, size_t len);
 
+bool l_tls_set_server_name(struct l_tls *tls, const char *name);
+
+bool l_tls_set_alpn_list(struct l_tls *tls, const char **list);
+const char *l_tls_get_alpn(struct l_tls *tls);
+
 /*
  * If peer is to be authenticated, supply the CA certificates.  On success
  * the l_tls object takes ownership of the queue and the individual l_cert
@@ -114,7 +119,7 @@ void l_tls_set_version_range(struct l_tls *tls,
 				enum l_tls_version min_version,
 				enum l_tls_version max_version);
 
-void l_tls_set_domain_mask(struct l_tls *tls, char **mask);
+void l_tls_set_domain_mask(struct l_tls *tls, const char **mask);
 
 void l_tls_set_session_cache(struct l_tls *tls, struct l_settings *settings,
 				const char *group_prefix, uint64_t lifetime,
