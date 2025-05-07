@@ -327,7 +327,12 @@ static void run_next_test(void *user_data)
 		printf("TEST: %s\n", test->name);
 
 	if (test->precheck) {
-		if (!test->precheck(test->data)) {
+		bool result = test->precheck(test->data);
+
+		if (test->flags & L_TEST_FLAG_INVERT_PRECHECK_RESULT)
+			result = !result;
+
+		if (!result) {
 			if (tap_enable)
 				printf("ok %u - %s # SKIP not-supported\n",
 							test->num, test->name);

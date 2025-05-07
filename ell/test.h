@@ -24,8 +24,9 @@ typedef bool (*l_test_precheck_t) (const void *data);
 #define L_TEST_FLAG_ALLOW_FAILURE		(1 << 2)
 #define L_TEST_FLAG_LITTLE_ENDIAN_ONLY		(1 << 3)
 #define L_TEST_FLAG_EXPENSIVE_COMPUTATION	(1 << 4)
-#define L_TEST_FLAG_REQUIRE_DBUS_SYSTEM_BUS	(1 << 5)
-#define L_TEST_FLAG_REQUIRE_DBUS_SESSION_BUS	(1 << 6)
+#define L_TEST_FLAG_INVERT_PRECHECK_RESULT	(1 << 5)
+#define L_TEST_FLAG_REQUIRE_DBUS_SYSTEM_BUS	(1 << 8)
+#define L_TEST_FLAG_REQUIRE_DBUS_SESSION_BUS	(1 << 9)
 
 void l_test_add_func_precheck(const char *name, l_test_func_t function,
 						l_test_precheck_t precheck,
