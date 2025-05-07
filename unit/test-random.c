@@ -33,17 +33,17 @@ static void test_random(const void *data)
 	assert(memcmp(buf1, buf2, 128));
 }
 
+static bool getrandom_precheck(const void *data)
+{
+	return l_getrandom_is_supported();
+}
+
 int main(int argc, char *argv[])
 {
 	l_test_init(&argc, &argv);
 
-	if (!l_getrandom_is_supported()) {
-		printf("getrandom syscall missing, skipping...");
-		goto done;
-	}
+	l_test_add_func_precheck("l_getrandom sanity check", test_random,
+							getrandom_precheck, 0);
 
-	l_test_add("l_getrandom sanity check", test_random, NULL);
-
-done:
 	return l_test_run();
 }
