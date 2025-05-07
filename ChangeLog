@@ -1,3 +1,7 @@
+ver 0.77:
+	Add support for precheck feature for unit tests.
+	Add support for license variable for pkg-config.
+
 ver 0.76:
 	Fix issue with random scalar generation.
 
