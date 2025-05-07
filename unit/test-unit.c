@@ -104,13 +104,14 @@ int main(int argc, char *argv[])
 					L_TEST_FLAG_ALLOW_FAILURE |
 					L_TEST_FLAG_REQUIRE_DBUS_SESSION_BUS);
 
-	l_test_add_func_precheck("add-precheck-success", test_ok,
-							precheck_success, 0);
-	l_test_add_func_precheck("add-precheck-failure", test_ok,
-							precheck_failure, 0);
+	l_test_add_func_precheck("add-precheck-success",
+					test_ok, precheck_success, 0);
+	l_test_add_func_precheck("add-precheck-failure",
+					test_ok, precheck_failure,
+					L_TEST_FLAG_INVERT_PRECHECK_RESULT);
 	l_test_add_func_precheck("add-precheck-success-fail",
-						test_fail, precheck_success,
-						L_TEST_FLAG_FAILURE_EXPECTED);
+					test_fail, precheck_success,
+					L_TEST_FLAG_FAILURE_EXPECTED);
 
 	return l_test_run();
 }
