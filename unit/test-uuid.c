@@ -208,20 +208,30 @@ static void test_from_string(const void *data)
 	assert(!memcmp(uuid, expected_uuid, sizeof(uuid)));
 }
 
+static bool getrandom_precheck(const void *data)
+{
+	return l_getrandom_is_supported();
+}
+
+static bool md5_precheck(const void *data)
+{
+	return l_checksum_is_supported(L_CHECKSUM_MD5, false);
+}
+
+static bool sha1_precheck(const void *data)
+{
+	return l_checksum_is_supported(L_CHECKSUM_SHA1, false);
+}
+
 int main(int argc, char *argv[])
 {
 	l_test_init(&argc, &argv);
 
-	if (l_checksum_is_supported(L_CHECKSUM_MD5, false))
-		l_test_add("/uuid/v3", test_v3, NULL);
-
-	if (l_getrandom_is_supported())
-		l_test_add("/uuid/v4", test_v4, NULL);
-
-	if (l_checksum_is_supported(L_CHECKSUM_SHA1, false)) {
-		l_test_add("/uuid/v5", test_v5, NULL);
-		l_test_add("/uuid/to string", test_to_string, NULL);
-	}
+	l_test_add_func_precheck("/uuid/v3", test_v3, md5_precheck, 0);
+	l_test_add_func_precheck("/uuid/v4", test_v4, getrandom_precheck, 0);
+	l_test_add_func_precheck("/uuid/v5", test_v5, sha1_precheck, 0);
+	l_test_add_func_precheck("/uuid/to string", test_to_string,
+							sha1_precheck, 0);
 
 	l_test_add("/uuid/from string", test_from_string, NULL);
 	l_test_add("/uuid/from string/too short",
