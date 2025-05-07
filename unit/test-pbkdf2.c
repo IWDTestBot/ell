@@ -140,42 +140,46 @@ static const struct pbkdf2_data athena_test_vector_7 = {
 	.key		= "6b9cf26d45455a43a5b8bb276a403b39",
 };
 
+static bool test_precheck(const void *data)
+{
+	return l_checksum_is_supported(L_CHECKSUM_SHA1, true);
+}
+
+#define add_test(name, func, data) l_test_add_data_func_precheck(name, \
+					data, func, test_precheck, 0)
+#define add_test_exp(name, func, data) l_test_add_data_func_precheck(name, \
+					data, func, test_precheck, \
+					L_TEST_FLAG_EXPENSIVE_COMPUTATION)
+
 int main(int argc, char *argv[])
 {
 	l_test_init(&argc, &argv);
 
-	if (!l_checksum_is_supported(L_CHECKSUM_SHA1, true)) {
-		printf("SHA1 support missing, skipping...\n");
-		goto done;
-	}
-
-	l_test_add("/pbkdf2-sha1/PBKDF2 Test vector 1",
+	add_test("/pbkdf2-sha1/PBKDF2 Test vector 1",
 					pbkdf2_test, &pbkdf2_test_vector_1);
-	l_test_add("/pbkdf2-sha1/PBKDF2 Test vector 2",
+	add_test("/pbkdf2-sha1/PBKDF2 Test vector 2",
 					pbkdf2_test, &pbkdf2_test_vector_2);
-	l_test_add("/pbkdf2-sha1/PBKDF2 Test vector 3",
+	add_test("/pbkdf2-sha1/PBKDF2 Test vector 3",
 					pbkdf2_test, &pbkdf2_test_vector_3);
-	l_test_add_data_func("/pbkdf2-sha1/PBKDF2 Test vector 4",
-					&pbkdf2_test_vector_4, pbkdf2_test,
-					L_TEST_FLAG_EXPENSIVE_COMPUTATION);
-	l_test_add("/pbkdf2-sha1/PBKDF2 Test vector 5",
+	add_test_exp("/pbkdf2-sha1/PBKDF2 Test vector 4",
+					pbkdf2_test, &pbkdf2_test_vector_4);
+	add_test("/pbkdf2-sha1/PBKDF2 Test vector 5",
 					pbkdf2_test, &pbkdf2_test_vector_5);
 
-	l_test_add("/pbkdf2-sha1/ATHENA Test vector 1",
+	add_test("/pbkdf2-sha1/ATHENA Test vector 1",
 					pbkdf2_test, &athena_test_vector_1);
-	l_test_add("/pbkdf2-sha1/ATHENA Test vector 2",
+	add_test("/pbkdf2-sha1/ATHENA Test vector 2",
 					pbkdf2_test, &athena_test_vector_2);
-	l_test_add("/pbkdf2-sha1/ATHENA Test vector 3",
+	add_test("/pbkdf2-sha1/ATHENA Test vector 3",
 					pbkdf2_test, &athena_test_vector_3);
-	l_test_add("/pbkdf2-sha1/ATHENA Test vector 4",
+	add_test("/pbkdf2-sha1/ATHENA Test vector 4",
 					pbkdf2_test, &athena_test_vector_4);
-	l_test_add("/pbkdf2-sha1/ATHENA Test vector 5",
+	add_test("/pbkdf2-sha1/ATHENA Test vector 5",
 					pbkdf2_test, &athena_test_vector_5);
-	l_test_add("/pbkdf2-sha1/ATHENA Test vector 6",
+	add_test("/pbkdf2-sha1/ATHENA Test vector 6",
 					pbkdf2_test, &athena_test_vector_6);
-	l_test_add("/pbkdf2-sha1/ATHENA Test vector 7",
+	add_test("/pbkdf2-sha1/ATHENA Test vector 7",
 					pbkdf2_test, &athena_test_vector_7);
 
-done:
 	return l_test_run();
 }
