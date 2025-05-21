@@ -1037,7 +1037,8 @@ LIB_EXPORT struct l_ecc_scalar *l_ecc_scalar_new_random(
 	uint64_t r[L_ECC_MAX_DIGITS];
 
 	while (iter++ < ECC_RANDOM_MAX_ITERATIONS) {
-		l_getrandom(r, curve->ndigits * 8);
+		if (!l_getrandom(r, curve->ndigits * 8))
+			continue;
 
 		if (curve == &p521)
 			r[8] &= 0x1ff;
