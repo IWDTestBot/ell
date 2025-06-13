@@ -1,3 +1,6 @@
+ver 0.78:
+	Fix issue with random ECC scalar generation.
+
 ver 0.77:
 	Add support for precheck feature for unit tests.
 	Add support for license variable for pkg-config.
