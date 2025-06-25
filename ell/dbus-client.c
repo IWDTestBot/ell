@@ -617,7 +617,7 @@ LIB_EXPORT void l_dbus_client_destroy(struct l_dbus_client *client)
 		return;
 
 	if (client->watch)
-		l_dbus_remove_signal_watch(client->dbus, client->watch);
+		l_dbus_remove_watch(client->dbus, client->watch);
 
 	if (client->added_watch)
 		l_dbus_remove_signal_watch(client->dbus, client->added_watch);
