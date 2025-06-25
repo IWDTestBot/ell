@@ -210,7 +210,7 @@ static inline void l_put_le16(uint16_t val, void *ptr)
 	L_PUT_UNALIGNED(L_CPU_TO_LE16(val), (uint16_t *) ptr);
 }
 
-static inline void l_put_be16(uint16_t val, const void *ptr)
+static inline void l_put_be16(uint16_t val, void *ptr)
 {
 	L_PUT_UNALIGNED(L_CPU_TO_BE16(val), (uint16_t *) ptr);
 }
