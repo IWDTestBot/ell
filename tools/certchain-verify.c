@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
 
 	ca_certs = l_pem_load_certificate_list(argv[1]);
 	if (!ca_certs) {
-		fprintf(stderr, "Unable to load CA certifiates\n");
+		fprintf(stderr, "Unable to load CA certificates\n");
 		goto free_certchain;
 	}
 

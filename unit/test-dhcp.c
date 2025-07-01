@@ -655,7 +655,7 @@ static int fake_transport_send(struct dhcp_transport *transport,
 	return len;
 }
 
-static int fake_transport_l2_send(struct dhcp_transport *transprot,
+static int fake_transport_l2_send(struct dhcp_transport *transport,
 					uint32_t saddr, uint16_t sport,
 					uint32_t daddr, uint16_t dport,
 					const uint8_t *dest_mac,

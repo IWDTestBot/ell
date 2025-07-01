@@ -44,7 +44,7 @@ _Pragma("GCC diagnostic pop")						\
 	})
 
 /*
- * If ELL headers and iterfaces end up getting compiled in a C++
+ * If ELL headers and interfaces end up getting compiled in a C++
  * environment, even though ELL itself is a C source based and is
  * compiled as such, certain assignments may be flagged by the C++
  * compiler as errors or warnings. The following portable casts should

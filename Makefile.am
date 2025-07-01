@@ -666,7 +666,7 @@ unit/cert-expired.pem: unit/cert-expired.csr unit/cert-ca.pem unit/gencerts.cnf 
 	$(AM_V_at)rm -r unit/cert-ca-tmp unit/cert-ca-index.txt
 
 unit/cert-entity-pkcs12-nomac.p12: unit/cert-entity-int-key.pem unit/cert-entity-int.pem
-	$(AM_V_GEN)openssl pkcs12 -inkey $< -in $(builddir)/unit/cert-entity-int.pem -out $@ -export -passout pass:abc -nomac # defaut ciphers
+	$(AM_V_GEN)openssl pkcs12 -inkey $< -in $(builddir)/unit/cert-entity-int.pem -out $@ -export -passout pass:abc -nomac # default ciphers
 
 unit/cert-entity-pkcs12-rc2-sha1.p12: unit/cert-entity-int-key.pem unit/cert-entity-int.pem unit/cert-chain.pem
 	$(AM_V_GEN)openssl pkcs12 -inkey $< -in $(builddir)/unit/cert-entity-int.pem -certfile $(builddir)/unit/cert-chain.pem -out $@ -export -passout pass:abc -certpbe PBE-SHA1-RC2-40 -keypbe PBE-SHA1-RC2-128 -macalg sha1 $(openssl_legacy)
