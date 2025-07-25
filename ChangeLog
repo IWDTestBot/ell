@@ -1,3 +1,8 @@
+ver 0.79:
+	Fix issue with D-Bus client and watch removal handling.
+	Fix issue with D-Bus client and service name handling.
+	Fix issue with D-Bus proxy and filter rule handling.
+
 ver 0.78:
 	Fix issue with random ECC scalar generation.
 
