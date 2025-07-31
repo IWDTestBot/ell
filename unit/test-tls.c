@@ -613,12 +613,12 @@ static void test_tls_with_ver(const struct tls_conn_test *test,
 						test->server_key_passphrase,
 						NULL);
 		if (!server_key) {
-			l_info("* Some kernel versions do not automatically\n"
-				"* load the pkcs8_key_parser module. If the\n"
-				"* system running test has not loaded this\n"
-				"* module, a failure here is likely. Running\n"
-				"* \"modprobe pkcs8_key_parser\" may correct\n"
-				"* this issue.\n");
+			l_info("# Some kernel versions do not automatically\n"
+				"# load the pkcs8_key_parser module. If the\n"
+				"# system running test has not loaded this\n"
+				"# module, a failure here is likely. Running\n"
+				"# \"modprobe pkcs8_key_parser\" may correct\n"
+				"# this issue.\n");
 			exit(1);
 		}
 
@@ -698,6 +698,18 @@ static void test_tls_test(const void *data)
 	test_tls_with_ver(test, 0, 0);
 	test_tls_with_ver(test, 0, L_TLS_V11);
 	test_tls_with_ver(test, L_TLS_V10, 0);
+}
+
+static void test_max_keys(const void *data)
+{
+	uint32_t maxkeys;
+	int r;
+
+	r = l_sysctl_get_u32(&maxkeys, "/proc/sys/kernel/keys/%s",
+				getuid() > 0 ? "maxkeys" : "root_maxkeys");
+	if (!r && maxkeys < 2000)
+		l_info("# Running sysctl kernel.keys.%s=2000 is recommended",
+			getuid() > 0 ? "maxkeys" : "root_maxkeys");
 }
 
 static void test_tls_version_mismatch_test(const void *data)
@@ -929,8 +941,6 @@ static void test_tls_suite_test(const void *data)
 int main(int argc, char *argv[])
 {
 	unsigned int i;
-	uint32_t maxkeys;
-	int r;
 
 	l_test_init(&argc, &argv);
 
@@ -979,12 +989,8 @@ int main(int argc, char *argv[])
 		goto done;
 	}
 
-	r = l_sysctl_get_u32(&maxkeys, "/proc/sys/kernel/keys/%s",
-				getuid() > 0 ? "maxkeys" : "root_maxkeys");
-	if (!r && maxkeys < 2000)
-		printf("Running sysctl kernel.keys.%s=2000 is recommended\n",
-			getuid() > 0 ? "maxkeys" : "root_maxkeys");
-
+	l_test_add_func("Test maxkeys",
+			test_max_keys, 0);
 	l_test_add_data_func("TLS connection no auth",
 			&tls_conn_test_no_auth, test_tls_test,
 			L_TEST_FLAG_ALLOW_FAILURE);
