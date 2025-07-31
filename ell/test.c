@@ -456,7 +456,7 @@ LIB_EXPORT int l_test_run(void)
 	}
 
 	if (tap_enable) {
-		printf("TAP version 12\n");
+		printf("TAP version 13\n");
 		printf("1..%u\n", test_count);
 	}
 
