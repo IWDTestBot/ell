@@ -613,12 +613,12 @@ static void test_tls_with_ver(const struct tls_conn_test *test,
 						test->server_key_passphrase,
 						NULL);
 		if (!server_key) {
-			l_info("* Some kernel versions do not automatically\n"
-				"* load the pkcs8_key_parser module. If the\n"
-				"* system running test has not loaded this\n"
-				"* module, a failure here is likely. Running\n"
-				"* \"modprobe pkcs8_key_parser\" may correct\n"
-				"* this issue.\n");
+			l_info("# Some kernel versions do not automatically\n"
+				"# load the pkcs8_key_parser module. If the\n"
+				"# system running test has not loaded this\n"
+				"# module, a failure here is likely. Running\n"
+				"# \"modprobe pkcs8_key_parser\" may correct\n"
+				"# this issue.\n");
 			exit(1);
 		}
 
