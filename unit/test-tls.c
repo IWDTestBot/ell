@@ -700,6 +700,18 @@ static void test_tls_test(const void *data)
 	test_tls_with_ver(test, L_TLS_V10, 0);
 }
 
+static void test_max_keys(const void *data)
+{
+	uint32_t maxkeys;
+	int r;
+
+	r = l_sysctl_get_u32(&maxkeys, "/proc/sys/kernel/keys/%s",
+				getuid() > 0 ? "maxkeys" : "root_maxkeys");
+	if (!r && maxkeys < 2000)
+		l_info("# Running sysctl kernel.keys.%s=2000 is recommended",
+			getuid() > 0 ? "maxkeys" : "root_maxkeys");
+}
+
 static void test_tls_version_mismatch_test(const void *data)
 {
 	test_tls_with_ver(&tls_conn_test_version_mismatch,
@@ -929,8 +941,6 @@ static void test_tls_suite_test(const void *data)
 int main(int argc, char *argv[])
 {
 	unsigned int i;
-	uint32_t maxkeys;
-	int r;
 
 	l_test_init(&argc, &argv);
 
@@ -979,12 +989,8 @@ int main(int argc, char *argv[])
 		goto done;
 	}
 
-	r = l_sysctl_get_u32(&maxkeys, "/proc/sys/kernel/keys/%s",
-				getuid() > 0 ? "maxkeys" : "root_maxkeys");
-	if (!r && maxkeys < 2000)
-		printf("Running sysctl kernel.keys.%s=2000 is recommended\n",
-			getuid() > 0 ? "maxkeys" : "root_maxkeys");
-
+	l_test_add_func("Test maxkeys",
+			test_max_keys, 0);
 	l_test_add_data_func("TLS connection no auth",
 			&tls_conn_test_no_auth, test_tls_test,
 			L_TEST_FLAG_ALLOW_FAILURE);
