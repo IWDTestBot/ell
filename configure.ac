@@ -29,7 +29,6 @@ AC_PROG_INSTALL
 AC_PROG_AWK
 
 AC_C_CHAR_UNSIGNED
-AC_C_BIGENDIAN(little_endian=no, little_endian=yes, little_endian=no)
 
 LT_PREREQ(2.2)
 LT_INIT([disable-static])
