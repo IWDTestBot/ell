@@ -1,3 +1,6 @@
+ver 0.80:
+	Fix issue with ECDHE client key exchange.
+
 ver 0.79:
 	Fix issue with D-Bus client and watch removal handling.
 	Fix issue with D-Bus client and service name handling.
