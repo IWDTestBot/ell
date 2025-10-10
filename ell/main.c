@@ -500,6 +500,7 @@ LIB_EXPORT int l_main_run(void)
 	if (unlikely(epoll_running))
 		return EXIT_FAILURE;
 
+	sd_notify("READY=1");
 	epoll_running = true;
 
 	for (;;) {
