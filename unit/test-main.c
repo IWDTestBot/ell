@@ -14,6 +14,9 @@
 #include <assert.h>
 #include <limits.h>
 #include <signal.h>
+#include <stdlib.h>
+#include <sys/socket.h>
+#include <sys/un.h>
 
 #include <ell/ell.h>
 
@@ -123,11 +126,78 @@ static void test_main(const void *data)
 	assert(l_main_exit());
 }
 
+static int sock_bind(const char *sock)
+{
+	struct sockaddr_un addr;
+	socklen_t len;
+	int fd;
+
+	fd = socket(AF_UNIX, SOCK_DGRAM | SOCK_CLOEXEC | SOCK_NONBLOCK, 0);
+	assert(fd >= 0);
+
+	memset(&addr, 0, sizeof(addr));
+	addr.sun_family = AF_UNIX;
+	strncpy(addr.sun_path, sock, sizeof(addr.sun_path) - 1);
+	len = offsetof(struct sockaddr_un, sun_path) + strlen(sock);
+
+	if (addr.sun_path[0] == '@')
+		addr.sun_path[0] = '\0';
+
+	assert(!bind(fd, (struct sockaddr *) &addr, len));
+
+	return fd;
+}
+
+static void test_sd_notify(const void *data)
+{
+	struct l_timeout *timeout_quit;
+	char sock[] = "/tmp/ell-notify.XXXXXX";
+	bool abstract = L_PTR_TO_INT(data);
+	int exit_status;
+	char buf[4096];
+	int fd;
+
+	/* Create a unique temporary path. */
+	assert(!close(mkstemp(sock)));
+	assert(!unlink(sock));
+
+	if (abstract)
+		sock[0] = '@';
+
+	fd = sock_bind(sock);
+
+	setenv("NOTIFY_SOCKET", sock, 1);
+	setenv("WATCHDOG_USEC", "1000000", 1);
+
+	assert(l_main_init());
+
+	timeout_quit = l_timeout_create(1, timeout_quit_handler, NULL, NULL);
+	assert(timeout_quit);
+
+	exit_status = l_main_run_with_signal(signal_handler, NULL);
+	assert(exit_status == EXIT_SUCCESS);
+
+	assert(l_main_exit());
+
+	assert(recv(fd, buf, sizeof(buf), MSG_TRUNC) == 7);
+	assert(strncmp(buf, "READY=1", 7) == 0);
+
+	assert(recv(fd, buf, sizeof(buf), MSG_TRUNC) == 10);
+	assert(strncmp(buf, "WATCHDOG=1", 10) == 0);
+
+	if (!abstract)
+		unlink(sock);
+
+	close(fd);
+}
+
 int main(int argc, char *argv[])
 {
 	l_test_init(&argc, &argv);
 
 	l_test_add("main", test_main, NULL);
+	l_test_add("sd_notify path", test_sd_notify, L_INT_TO_PTR(false));
+	l_test_add("sd_notify abstract", test_sd_notify, L_INT_TO_PTR(true));
 
 	return l_test_run();
 }
