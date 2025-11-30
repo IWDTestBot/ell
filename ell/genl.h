@@ -11,6 +11,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include "netlink.h"
 
 #ifdef __cplusplus
 extern "C" {
